@@ -1,6 +1,12 @@
 // Actionably: one Netlify function, two jobs: "extract" a save, "plan" the week.
 // Env vars: ANTHROPIC_API_KEY (required), ANTHROPIC_MODEL (optional),
-// FIREBASE_API_KEY (the web apiKey; when set, every request must carry a signed-in user's token)
+// FIREBASE_API_KEY (the web apiKey; when set, every request must carry a signed-in user's token),
+// FIREBASE_SERVICE_ACCOUNT_JSON (service account for this Firebase project; enables the daily token cap),
+// DAILY_TOKEN_LIMIT (optional, tokens per user per day, default 100000, 0 turns the cap off),
+// UNLIMITED_EMAILS (optional, comma separated emails that skip the hourly and daily limits)
+import { initializeApp, cert, getApps } from "firebase-admin/app";
+import { getFirestore, FieldValue } from "firebase-admin/firestore";
+
 export const config = { path: "/api/ai" };
 
 const MODEL = process.env.ANTHROPIC_MODEL || "claude-sonnet-5-5";
@@ -41,6 +47,50 @@ const json = (o, s = 200) =>
 
 const hits = new Map(); // best-effort per-user limit, resets when the function instance restarts
 const LIMIT_PER_HOUR = 40;
+const DAILY_TOKEN_LIMIT = parseInt(process.env.DAILY_TOKEN_LIMIT || "100000", 10);
+const UNLIMITED = (process.env.UNLIMITED_EMAILS || "").split(",").map((e) => e.trim().toLowerCase()).filter(Boolean);
+
+let _db;
+function db() {
+  if (_db !== undefined) return _db;
+  _db = null;
+  try {
+    const raw = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
+    if (!raw) { console.warn("FIREBASE_SERVICE_ACCOUNT_JSON missing, daily token cap is off"); return _db; }
+    if (!getApps().length) initializeApp({ credential: cert(JSON.parse(raw)) });
+    _db = getFirestore();
+  } catch (e) {
+    console.error("Firebase admin init failed:", e.message);
+  }
+  return _db;
+}
+
+const dayKey = () => new Date().toISOString().slice(0, 10); // UTC day
+
+async function usedToday(uid) {
+  const d = db();
+  if (!d) return 0;
+  try {
+    const snap = await d.collection("aiUsage").doc(uid + "_" + dayKey()).get();
+    return snap.exists ? snap.data().tokens || 0 : 0;
+  } catch (e) {
+    console.error("usage read failed:", e.message);
+    return 0;
+  }
+}
+
+async function addUsage(uid, tokens) {
+  const d = db();
+  if (!d || !tokens) return;
+  try {
+    await d.collection("aiUsage").doc(uid + "_" + dayKey()).set(
+      { uid, day: dayKey(), tokens: FieldValue.increment(tokens), requests: FieldValue.increment(1) },
+      { merge: true }
+    );
+  } catch (e) {
+    console.error("usage write failed:", e.message);
+  }
+}
 
 async function verify(req) {
   const m = (req.headers.get("authorization") || "").match(/^Bearer (.+)$/);
@@ -51,7 +101,8 @@ async function verify(req) {
   );
   if (!r.ok) return null;
   const d = await r.json();
-  return d.users && d.users[0] ? d.users[0].localId : null;
+  const u = d.users && d.users[0];
+  return u ? { uid: u.localId, email: String(u.email || "").toLowerCase(), verified: !!u.emailVerified } : null;
 }
 
 function limited(uid) {
@@ -63,7 +114,7 @@ function limited(uid) {
   return false;
 }
 
-async function claude(system, content) {
+async function claude(system, content, meter) {
   const r = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: {
@@ -75,6 +126,7 @@ async function claude(system, content) {
   });
   if (!r.ok) throw new Error("claude " + r.status);
   const d = await r.json();
+  if (meter && d.usage) meter.tokens += (d.usage.input_tokens || 0) + (d.usage.output_tokens || 0);
   const txt = (d.content || []).map((b) => b.text || "").join("");
   return JSON.parse(txt.replace(/```json|```/g, "").trim());
 }
@@ -82,10 +134,17 @@ async function claude(system, content) {
 export default async (req) => {
   if (req.method !== "POST") return json({ error: "POST only" }, 405);
   if (!process.env.ANTHROPIC_API_KEY) return json({ error: "Missing ANTHROPIC_API_KEY" }, 500);
+  let user = null, exempt = false;
+  const meter = { tokens: 0 };
   if (process.env.FIREBASE_API_KEY) {
-    const uid = await verify(req);
-    if (!uid) return json({ error: "Sign in required" }, 401);
-    if (limited(uid)) return json({ error: "Hourly limit reached" }, 429);
+    user = await verify(req);
+    if (!user) return json({ error: "Sign in required" }, 401);
+    exempt = user.verified && UNLIMITED.includes(user.email);
+    if (!exempt) {
+      if (limited(user.uid)) return json({ error: "Hourly limit reached" }, 429);
+      if (DAILY_TOKEN_LIMIT > 0 && (await usedToday(user.uid)) >= DAILY_TOKEN_LIMIT)
+        return json({ error: "Daily limit reached", code: "daily_limit" }, 429);
+    }
   }
   let b;
   try { b = await req.json(); } catch { return json({ error: "Bad JSON" }, 400); }
@@ -95,13 +154,13 @@ export default async (req) => {
       if (!imgs.length && !String(b.text || "").trim()) return json({ error: "Nothing to extract" }, 400);
       const content = imgs.map((data) => ({ type: "image", source: { type: "base64", media_type: "image/jpeg", data } }));
       content.push({ type: "text", text: "Caption/text: " + String(b.text || "").slice(0, 4000) });
-      return json(await claude(EXTRACT, content));
+      return json(await claude(EXTRACT, content, meter));
     }
     if (b.mode === "plan") {
       const picks = (b.picks || []).slice(0, 6);
       const size = Math.min(6, Math.max(2, +b.size || 4));
       const hours = Math.min(20, Math.max(0.5, +b.hours || 3));
-      const out = await claude(PLAN, JSON.stringify({ size, hours, picks }));
+      const out = await claude(PLAN, JSON.stringify({ size, hours, picks }), meter);
       const ids = new Set(picks.map((p) => String(p.id)));
       const plan = (out.plan || []).filter((p) => ids.has(String(p.ref))).slice(0, size);
       const mins = plan.reduce((a, p) => a + (+p.est_minutes || 0), 0);
@@ -117,7 +176,7 @@ export default async (req) => {
         recent_saves: (b.recent_saves || []).slice(0, 10),
         history: (b.history || []).slice(-20),
       };
-      const out = await claude(GOALS, JSON.stringify(input));
+      const out = await claude(GOALS, JSON.stringify(input), meter);
       let total = 0;
       const goals = (Array.isArray(out.goals) ? out.goals : [])
         .filter((g) => g && g.title && +g.target > 0)
@@ -129,5 +188,7 @@ export default async (req) => {
     return json({ error: "Unknown mode" }, 400);
   } catch (e) {
     return json({ error: "AI request failed" }, 502);
+  } finally {
+    if (user && !exempt) await addUsage(user.uid, meter.tokens);
   }
 };
