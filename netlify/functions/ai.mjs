@@ -1,4 +1,4 @@
-// Saved: one Netlify function, two jobs: "extract" a save, "plan" the week.
+// Actionably: one Netlify function, two jobs: "extract" a save, "plan" the week.
 // Env vars: ANTHROPIC_API_KEY (required), ANTHROPIC_MODEL (optional),
 // FIREBASE_API_KEY (the web apiKey; when set, every request must carry a signed-in user's token)
 export const config = { path: "/api/ai" };
@@ -16,7 +16,7 @@ Return ONLY JSON, no markdown:
 Rules: only include what the post actually shows. Never invent quantities, steps, or details.
 If it looks like one slide of a longer carousel, say so in missing_info.`;
 
-const PLAN = `You build a weekly plan for Saved, an app that turns saved posts into actions.
+const PLAN = `You build a weekly plan for Actionably, an app that turns saved posts into actions.
 Input JSON: {size, hours, picks:[{id,category,title,steps_or_items,time_needed,missing_info,source_link}]}
 Return ONLY JSON, no markdown:
 {"plan":[{"day":"Mon|Tue|Wed|Thu|Fri|Sat|Sun","ref":<pick id>,"next_step":"string","est_minutes":number,"why_now":"string"}]}
@@ -26,7 +26,7 @@ if missing_info is not null, the first step is to check the original post;
 friendly, short, no guilt.`;
 
 
-const GOALS = `You propose weekly goals for a user of Saved, an app that turns saved posts into actions.
+const GOALS = `You propose weekly goals for a user of Actionably, an app that turns saved posts into actions.
 Input JSON: {profile:{focus_areas,hours_per_week,style:"daily"|"weekly"}, themes:[{theme,save_count}], recent_saves:[{title,theme,suggested_action}], history:[{goal_title,target,completed}]}
 Return ONLY JSON, no markdown:
 {"goals":[{"title":"max 8 words","metric":"what is counted","target":number,"deadline":"Mon|Tue|Wed|Thu|Fri|Sat|Sun","est_minutes":number,"based_on":"theme or focus area","why":"one sentence tied to the user's saves"}],"question":null}
