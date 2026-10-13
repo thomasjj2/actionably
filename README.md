@@ -33,7 +33,7 @@ firestore.rules             Firestore security rules
 
 1. Create a project and add a Web app.
 2. Authentication: enable the Google provider.
-3. Firestore: create a database and publish the rules in `firestore.rules`. Each user can only read and write their own document in `savedApp`.
+3. Firestore: create a database and publish the rules in `firestore.rules`. Each user can only read and write their own document in `actionablyApp`.
 4. Paste the web config (`apiKey`, `authDomain`, `projectId`, `appId`) into the `FB` object near the top of the script in `index.html`. While it still says PASTE, the app runs in local demo mode.
 
 ### 2. Netlify
