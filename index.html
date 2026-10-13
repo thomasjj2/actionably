@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Saved</title>
+<title>Actionably</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;800&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
@@ -69,7 +69,7 @@ label{font-weight:700;font-size:14px;display:block;margin-top:12px}
 </head>
 <body>
 <div id="app">
-<header><h1>Saved</h1><div class="row"><button class="btn ghost sm" id="outBtn" hidden>Sign out</button><button class="btn sm" id="addBtn">Add a save</button></div></header>
+<header><h1>Actionably</h1><div class="row"><button class="btn ghost sm" id="outBtn" hidden>Sign out</button><button class="btn sm" id="addBtn">Add a save</button></div></header>
 <main id="main"></main>
 <nav><div id="nav"></div></nav>
 </div>
@@ -84,9 +84,9 @@ label{font-weight:700;font-size:14px;display:block;margin-top:12px}
 </div></div>
 <script>
 /* Paste your Firebase web app config here. While it says PASTE, the app runs in local demo mode. */
-var FB={apiKey:"AIzaSyBfQsSIDKKju18VuiKuYOO_6tMQglCyeXY",authDomain:"actionably-27b9e.firebaseapp.com",projectId:"actionably-27b9e",appId:"1:776686531940:web:16b4115bdf71ada9067671"};
+var FB={apiKey:"AIzaSyBfQsSIDKKju18VuiKuYOO_6tMQglCyeXY",authDomain:"actionably.netlify.app",projectId:"actionably-27b9e",appId:"1:776686531940:web:16b4115bdf71ada9067671"};
 var CLOUD_ON=!/^PASTE/.test(FB.apiKey),U=null,_t=null,LOADERR=false;
-var KEY='saved-demo-v1';
+var KEY='actionably-demo-v1';
 var SEED=[
 {id:1,cat:'Mindset',title:'Repetition is the father of results',src:'@hormozi',theme:'repetition',sum:'You fail by wanting the result without the 100 reps.',act:'Pick one thing you want. Do 5 reps of it today and log them.',min:20},
 {id:2,cat:'Mindset',title:'Promise late, deliver early',src:'@hormozi',theme:'business habits',sum:'A list of short business maxims: give first, test small, persist.',act:'Pick two maxims and write how you will use each this week.',min:15},
@@ -225,10 +225,10 @@ window.cloud={
 signIn:()=>signInWithPopup(auth,new GoogleAuthProvider()),
 signOut:()=>signOut(auth),
 token:()=>auth.currentUser?auth.currentUser.getIdToken():Promise.resolve(null),
-save:(st)=>setDoc(doc(db,"savedApp",auth.currentUser.uid),{state:JSON.stringify(st),updated:Date.now()}).catch(()=>{})
+save:(st)=>setDoc(doc(db,"actionablyApp",auth.currentUser.uid),{state:JSON.stringify(st),updated:Date.now()}).catch(()=>{})
 };
 onAuthStateChanged(auth,async(u)=>{let data=null;
-if(u){try{const d=await getDoc(doc(db,"savedApp",u.uid));if(d.exists())data=JSON.parse(d.data().state)}catch(e){window.onAuth(null,null,true);return}}
+if(u){try{const d=await getDoc(doc(db,"actionablyApp",u.uid));if(d.exists())data=JSON.parse(d.data().state)}catch(e){window.onAuth(null,null,true);return}}
 window.onAuth(u,data)});
 }
 </script>
