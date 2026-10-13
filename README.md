@@ -23,6 +23,7 @@ Instagram has no public API for saved posts, so saves come in as screenshots or 
 ```
 index.html                  frontend
 netlify/functions/ai.mjs    AI function (extract, plan, goals)
+package.json                function dependency (firebase-admin)
 netlify.toml                Netlify build config
 firestore.rules             Firestore security rules
 ```
@@ -46,6 +47,9 @@ firestore.rules             Firestore security rules
 | `ANTHROPIC_API_KEY` | Yes | Use a key with a prepaid budget cap |
 | `FIREBASE_API_KEY` | Yes | The Firebase web apiKey. When set, every request must carry a signed in user's token |
 | `SECRETS_SCAN_SMART_DETECTION_OMIT_VALUES` | Yes | Set to the same Firebase web apiKey so Netlify's secrets scan passes |
+| `FIREBASE_SERVICE_ACCOUNT_JSON` | For the daily cap | Service account key for this Firebase project (Project settings, Service accounts, Generate new private key). Paste the raw JSON only. Mark as secret |
+| `DAILY_TOKEN_LIMIT` | No | Tokens per user per day. Defaults to 100000, and 0 turns the cap off |
+| `UNLIMITED_EMAILS` | No | Comma separated emails that skip the hourly and daily limits |
 | `ANTHROPIC_MODEL` | No | Defaults to `claude-sonnet-5-5` |
 
 3. After the first deploy, add your Netlify domain in Firebase under Authentication, Settings, Authorized domains. Google sign in fails without it.
@@ -53,6 +57,7 @@ firestore.rules             Firestore security rules
 ## Limits and notes
 
 - Each user is limited to 40 AI requests per hour. The counter is best effort and resets when the function restarts.
+- Each user also has a daily token budget (`DAILY_TOKEN_LIMIT`). Usage is counted from the token totals Claude reports and stored by the function in the `aiUsage` collection, which the Firestore rules block from browsers. The check happens before a request, so a user can go over the limit by at most one request. The day resets at midnight UTC.
 - Netlify functions cap request bodies at about 6 MB, so downscale screenshots in the browser before sending.
 - The function only returns what a post actually shows. It is told never to invent quantities, steps or details.
 
