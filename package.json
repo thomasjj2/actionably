@@ -1,0 +1,7 @@
+{
+  "name": "actionably",
+  "private": true,
+  "dependencies": {
+    "firebase-admin": "^13.10.0"
+  }
+}
