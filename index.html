@@ -69,7 +69,7 @@ label{font-weight:700;font-size:14px;display:block;margin-top:12px}
 </head>
 <body>
 <div id="app">
-<header><h1>Actionably</h1><div class="row"><button class="btn ghost sm" id="outBtn" hidden>Sign out</button><button class="btn sm" id="addBtn">Add a save</button></div></header>
+<header><h1>Actionably</h1><div class="row"><button class="btn ghost sm" id="inBtn" data-signin="1" hidden>Sign in</button><button class="btn sm" id="addBtn">Add a save</button></div></header>
 <main id="main"></main>
 <nav><div id="nav"></div></nav>
 </div>
@@ -79,13 +79,13 @@ label{font-weight:700;font-size:14px;display:block;margin-top:12px}
 <label for="txt">Caption or text</label><textarea id="txt"></textarea>
 <label for="shots">Screenshots</label><input type="file" id="shots" accept="image/*" multiple>
 <label for="lnk">Original link (optional)</label><input type="text" id="lnk" placeholder="https://">
-<p class="mute" style="margin-top:10px">Demo mode: sorting here is simple keyword matching. The real app sends this to Claude.</p>
+<div id="sgate" hidden style="margin-top:14px"><div class="item"><strong>Create a free account to keep this save.</strong><p class="mute">We will hold on to what you typed. Sign in and it saves right away.</p><button class="btn" data-signin="1" style="margin-top:10px">Continue with Google</button><p class="warn" id="gerr2"></p></div></div>
 <div class="row" style="margin-top:14px"><button class="btn" id="saveIt">Save it</button><button class="btn ghost" id="cancel">Cancel</button></div>
 </div></div>
 <script>
 /* Paste your Firebase web app config here. While it says PASTE, the app runs in local demo mode. */
 var FB={apiKey:"AIzaSyBfQsSIDKKju18VuiKuYOO_6tMQglCyeXY",authDomain:"actionably.netlify.app",projectId:"actionably-27b9e",appId:"1:776686531940:web:16b4115bdf71ada9067671"};
-var CLOUD_ON=!/^PASTE/.test(FB.apiKey),U=null,_t=null,LOADERR=false;
+var CLOUD_ON=!/^PASTE/.test(FB.apiKey),U=null,_t=null,LOADERR=false,GUEST_PENDING=false,DEL=false,ACC={confirm:false,busy:false,err:'',reauth:false};
 var KEY='actionably-demo-v1';
 var SEED=[
 {id:1,cat:'Mindset',title:'Repetition is the father of results',src:'@hormozi',theme:'repetition',sum:'You fail by wanting the result without the 100 reps.',act:'Pick one thing you want. Do 5 reps of it today and log them.',min:20},
@@ -98,19 +98,20 @@ var SEED=[
 ];
 var S={tab:'saves',saves:SEED.slice(),dec:{},size:4,plan:null,total:0,reps:0,groc:{}};
 try{var r=localStorage.getItem(KEY);if(r){var o=JSON.parse(r);if(o&&o.saves)S=o}}catch(e){}
-function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}if(U&&window.cloud){clearTimeout(_t);_t=setTimeout(function(){window.cloud.save(JSON.parse(JSON.stringify(S)))},800)}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}if(U&&window.cloud&&!DEL){clearTimeout(_t);_t=setTimeout(function(){window.cloud.save(JSON.parse(JSON.stringify(S)))},800)}}
 function esc(t){return String(t==null?'':t).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
 var $=function(i){return document.getElementById(i)};
 var TABS=[['saves','Saves'],['review','Review'],['plan','Plan'],['progress','Progress']];
-function nav(){$('nav').innerHTML=TABS.map(function(t){return '<button data-t="'+t[0]+'" aria-current="'+(S.tab===t[0])+'">'+t[1]+'</button>'}).join('')}
+function nav(){var T=TABS.slice();if(U)T.push(['account','My Account']);$('nav').innerHTML=T.map(function(t){return '<button data-t="'+t[0]+'" aria-current="'+(S.tab===t[0])+'">'+t[1]+'</button>'}).join('')}
 function go(t){S.tab=t;save();render();window.scrollTo(0,0)}
 function themeCount(){var c={};S.saves.forEach(function(s){c[s.theme]=(c[s.theme]||0)+1});return c}
 function picks(){return S.saves.filter(function(s){return S.dec[s.id]==='do'})}
 function queue(){return S.saves.filter(function(s){return !S.dec[s.id]||S.dec[s.id]==='later'}).sort(function(a,b){return (S.dec[a.id]==='later'?1:0)-(S.dec[b.id]==='later'?1:0)||b.id-a.id})}
-function render(){nav();var m=$('main');if(CLOUD_ON&&!U){$('nav').innerHTML='';m.innerHTML=vGate();$('addBtn').hidden=true;$('outBtn').hidden=true;return}if(!S.profile){$('nav').innerHTML='';m.innerHTML=vOnb();$('addBtn').hidden=true;$('outBtn').hidden=!U;return}$('addBtn').hidden=false;$('outBtn').hidden=!U;
+function render(){nav();var m=$('main');if(CLOUD_ON&&!U){$('nav').innerHTML='';m.innerHTML=vPreview();$('addBtn').hidden=false;$('inBtn').hidden=false;return}if(!S.profile){$('nav').innerHTML='';m.innerHTML=vOnb();$('addBtn').hidden=true;$('inBtn').hidden=true;return}$('addBtn').hidden=false;$('inBtn').hidden=true;
 if(S.tab==='saves')m.innerHTML=vSaves();
 else if(S.tab==='review')m.innerHTML=vReview(),bindReview();
 else if(S.tab==='plan')m.innerHTML=vPlan();
+else if(S.tab==='account'&&U)m.innerHTML=vAcct();
 else m.innerHTML=vProg()+'<p style="margin-top:16px"><button class="btn ghost sm" id="editprof">Change my focus and time</button></p>'}
 function vSaves(){var tc=themeCount(),top=Object.keys(tc).sort(function(a,b){return tc[b]-tc[a]})[0];
 var h='<h2>Your saves</h2><p class="mute">'+S.saves.length+' saved. Review them each week and do a few.</p>';
@@ -181,7 +182,7 @@ else if(b.dataset.rep){var g=S.plan.filter(function(x){return x.id===b.dataset.r
 });
 document.addEventListener('change',function(e){if(e.target.dataset&&e.target.dataset.g!==undefined){S.groc[e.target.dataset.g]=e.target.checked;save()}});
 function sheet(o){$('sheet').classList.toggle('open',o)}
-$('addBtn').onclick=function(){sheet(true);$('txt').focus()};$('cancel').onclick=function(){sheet(false)};
+$('addBtn').onclick=function(){$('sgate').hidden=true;sheet(true);$('txt').focus()};$('cancel').onclick=function(){sheet(false)};
 function shrink(f){return new Promise(function(res){var r=new FileReader();r.onload=function(){var im=new Image();im.onload=function(){var k=Math.min(1,1100/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=im.width*k;c.height=im.height*k;c.getContext('2d').drawImage(im,0,0,c.width,c.height);res(c.toDataURL('image/jpeg',.7).split(',')[1])};im.onerror=function(){res(null)};im.src=r.result};r.onerror=function(){res(null)};r.readAsDataURL(f)})}
 function ai(mode,body){body.mode=mode;var tk=(U&&window.cloud)?window.cloud.token():Promise.resolve(null);return tk.then(function(t){var h={'Content-Type':'application/json'};if(t)h.Authorization='Bearer '+t;return fetch('/api/ai',{method:'POST',headers:h,body:JSON.stringify(body)})}).then(function(r){if(!r.ok)throw new Error('ai '+r.status);return r.json()})}
 function nextId(){return S.saves.length?Math.max.apply(null,S.saves.map(function(s){return s.id}))+1:1}
@@ -189,17 +190,53 @@ function addSave(o){S.saves.push(o);S.tab='saves';save();$('saveIt').disabled=fa
 function heur(t,n,l){var low=t.toLowerCase(),cat='Mindset';if(/recipe|cup|tbsp|bake|cook|ingredient/.test(low))cat='Cook';else if(/workout|reps|sets|squat|run/.test(low))cat='Train';else if(/buy|\$|deal|review/.test(low))cat='Buy';
 return {id:nextId(),cat:cat,title:t?t.split(/\s+/).slice(0,8).join(' '):'Screenshot save ('+n+' image'+(n>1?'s':'')+')',src:'you',theme:cat==='Mindset'?'mindset':cat.toLowerCase(),sum:t?t.slice(0,110):'Screenshots added.',act:'Review this save and choose one concrete step.',min:15,link:/^https?:\/\//.test(l)?l:null,miss:(n===1&&!t)?'One image only. If this is a carousel, add the other slides.':null}}
 $('saveIt').onclick=function(){var t=$('txt').value.trim(),fs=[].slice.call($('shots').files).slice(0,4),l=$('lnk').value.trim();if(!t&&!fs.length){$('txt').focus();return}
+if(CLOUD_ON&&!U){GUEST_PENDING=true;$('sgate').hidden=false;return}
 var btn=$('saveIt');btn.disabled=true;btn.textContent='Reading your save...';
 Promise.all(fs.map(shrink)).then(function(im){im=im.filter(Boolean);
 return ai('extract',{text:t,images:im}).then(function(x){var c=String(x.category||'mindset');c=c.charAt(0).toUpperCase()+c.slice(1);
 addSave({id:nextId(),cat:c,title:String(x.title||'Untitled').slice(0,80),src:'you',theme:String(x.theme||c).toLowerCase(),sum:String(x.summary||''),ing:(c==='Cook'&&Array.isArray(x.steps_or_items))?x.steps_or_items.map(String):null,act:String(x.suggested_action||'Review this save and choose one step.'),min:+x.time_needed||15,link:/^https?:\/\//.test(l)?l:null,miss:x.missing_info?String(x.missing_info):null})})
 .catch(function(){addSave(heur(t,fs.length,l))})})};
-function vGate(){return '<div class="empty"><h2>Sign in to keep your saves</h2><p class="mute" style="margin:6px 0 16px">Your saves and weekly plans sync across your devices.</p><button class="btn" id="signin">Continue with Google</button><p class="warn" id="gerr">'+(LOADERR?'Could not load your saves. Check your Firestore rules, then try again.':'')+'</p></div>'}
+var EX=[
+{cat:'Cook',title:'One pan lemon chicken and rice',sum:'A recipe carousel with five ingredients and four steps.',act:'Buy the ingredients and cook it Wednesday night.',goal:'Cook 3 new recipes',cur:1,target:3,by:'Sun'},
+{cat:'Train',title:'20 minute dumbbell back workout',sum:'Four exercises, three sets each, with rest times.',act:'Do the full circuit once before Friday.',goal:'Finish 3 workouts',cur:1,target:3,by:'Fri'},
+{cat:'Buy',title:'Standing desk under $300',sum:'A comparison of three desks with pros and cons.',act:'Compare two of them and decide by Thursday.',goal:'Make 1 purchase decision',cur:0,target:1,by:'Thu'},
+{cat:'Learn',title:'How compound interest works',sum:'A short explainer with one worked example.',act:'Spend 20 minutes redoing the example with your own numbers.',goal:'Study 3 sessions',cur:1,target:3,by:'Sat'},
+{cat:'Try',title:'Sunrise hike spot near the city',sum:'A trail with parking tips and the best time to go.',act:'Pick a morning this weekend and put it on your calendar.',goal:'Try 1 new place',cur:0,target:1,by:'Sun'},
+{cat:'Mindset',title:'Repetition beats motivation',sum:'A quote about doing the small thing again and again.',act:'Choose one habit and log 5 reps of it this week.',goal:'Log 5 reps',cur:2,target:5,by:'Fri'}];
+var PW=[['Mon','Buy the lemon chicken ingredients','Cook',15],['Wed','Cook lemon chicken and rice','Cook',45],['Fri','Dumbbell back workout','Train',20],['Sat','Redo the compound interest example','Learn',20]];
+function vPreview(){var h='<div style="margin-top:8px"><h2>Turn what you save into what you do</h2><p class="mute">Add a screenshot or caption from a post you saved. Actionably pulls out the steps, picks one next action, and builds your week around it.</p><div class="row" style="margin:14px 0 4px"><button class="btn" data-signin="1">Continue with Google</button><button class="btn ghost" id="tryAdd">Add a save</button></div><p class="warn" id="gerr">'+(LOADERR?'Could not load your saves. Check your Firestore rules, then try again.':'')+'</p></div>';
+h+='<h3 style="margin-top:22px">What a save becomes</h3><p class="mute">Examples, one for each kind of save.</p>';
+EX.forEach(function(x){h+='<div class="item"><div class="row sp"><span class="tag '+x.cat+'">'+x.cat+'</span><span class="mute">Example</span></div><h3 style="margin-top:8px">'+x.title+'</h3><p class="mute">'+x.sum+'</p><p style="margin-top:6px"><strong>Next step:</strong> '+x.act+'</p><div style="margin-top:10px"><strong>'+x.cur+' / '+x.target+'</strong> <span class="mute">'+x.goal+' by '+x.by+'</span></div><div class="bar"><i style="width:'+(x.cur/x.target*100)+'%"></i></div></div>'});
+h+='<h3 style="margin-top:22px">A week, built for you</h3><p class="mute">Built from the saves you pick, within the hours you have.</p>';
+PW.forEach(function(w){h+='<div class="item"><div class="row sp"><span class="day">'+w[0]+'</span><span class="mute">'+w[3]+' min</span></div><h3>'+w[1]+'</h3><span class="tag '+w[2]+'">'+w[2]+'</span></div>'});
+return h+'<div class="empty"><h3>Ready to start?</h3><p class="mute" style="margin:6px 0 14px">Make a save and we will ask you to create a free account.</p><button class="btn" data-signin="1">Continue with Google</button></div>'}
+function vAcct(){var h='<h2>My Account</h2><div class="item"><p class="mute">Signed in as</p><p><strong>'+esc((U&&U.email)||'')+'</strong></p><div style="margin-top:12px"><button class="btn ghost sm" id="signout">Sign out</button></div></div>';
+h+='<div class="item"><h3>Delete my account and data</h3><p class="mute" style="margin-top:4px">This permanently deletes your saves, plans and progress, and removes your account. It cannot be undone.</p>';
+if(ACC.busy)h+='<p class="mute" style="margin-top:10px">Deleting...</p>';
+else if(ACC.reauth)h+='<p class="mute" style="margin-top:10px">Your saves and plans are deleted. For security, confirm it is you to finish removing the account.</p><button class="btn sm" id="delRe" style="margin-top:8px;background:var(--bad);color:var(--onpri)">Confirm and delete account</button>';
+else if(ACC.confirm)h+='<p style="margin-top:10px"><strong>Are you sure?</strong></p><div class="row" style="margin-top:8px"><button class="btn sm" id="delYes" style="background:var(--bad);color:var(--onpri)">Yes, delete everything</button><button class="btn ghost sm" id="delNo">Cancel</button></div>';
+else h+='<button class="btn ghost sm" id="delAsk" style="margin-top:10px;border-color:var(--bad);color:var(--bad)">Delete my account and data</button>';
+if(ACC.err)h+='<p class="warn">'+esc(ACC.err)+'</p>';
+return h+'</div>'}
+function acctGone(){try{localStorage.removeItem(KEY)}catch(x){}S={tab:'saves',saves:[],dec:{},size:4,plan:null,total:0,reps:0,groc:{}};ACC={confirm:false,busy:false,err:'',reauth:false};U=null;render()}
+function delAccount(re){ACC.busy=true;ACC.err='';DEL=true;clearTimeout(_t);render();
+var p=re?window.cloud.reauthDelete():window.cloud.deleteAll();
+p.then(acctGone).catch(function(e){ACC.busy=false;var c=e&&e.code;
+if(c==='auth/requires-recent-login'){ACC.reauth=true;ACC.confirm=true}
+else if(ACC.reauth&&(c==='auth/popup-closed-by-user'||c==='auth/cancelled-popup-request')){ACC.err='Confirmation was cancelled. Try again to finish removing your account.'}
+else{DEL=false;ACC.err='Could not delete right now. Check your connection and try again.'}
+render()})}
+document.addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;
+if(b.id==='tryAdd')$('addBtn').click();
+else if(b.id==='delAsk'){ACC.confirm=true;ACC.err='';render()}
+else if(b.id==='delNo'){ACC.confirm=false;ACC.err='';render()}
+else if(b.id==='delYes'&&window.cloud)delAccount(false);
+else if(b.id==='delRe'&&window.cloud)delAccount(true)});
 window.onAuth=function(u,data,err){if(err){LOADERR=true;U=null;render();return}LOADERR=false;U=u;
-if(u){if(data&&data.saves){S=data}else{S={tab:'saves',saves:[],dec:{},size:4,plan:null,total:0,reps:0,groc:{}};save()}}render()};
+if(u){DEL=false;if(data&&data.saves){S=data}else{S={tab:'saves',saves:[],dec:{},size:4,plan:null,total:0,reps:0,groc:{}};save()}}render();if(u&&GUEST_PENDING){GUEST_PENDING=false;$('sgate').hidden=true;setTimeout(function(){$('saveIt').click()},50)}};
 document.addEventListener('click',function(e){var b=e.target.closest('button');if(!b||!window.cloud)return;
-if(b.id==='signin'){window.cloud.signIn().catch(function(){var g=$('gerr');if(g)g.textContent='Sign-in failed. Make sure this site is an authorized domain in Firebase Auth.'})}
-else if(b.id==='outBtn'){try{localStorage.removeItem(KEY)}catch(x){}window.cloud.signOut()}});
+if(b.id==='signin'||b.dataset.signin){window.cloud.signIn().catch(function(e){var m=(e&&(e.code==='auth/popup-closed-by-user'||e.code==='auth/cancelled-popup-request'))?'':'Sign-in failed. Make sure this site is an authorized domain in Firebase Auth.';['gerr','gerr2'].forEach(function(i){var g=$(i);if(g)g.textContent=m})})}
+else if(b.id==='signout'){try{localStorage.removeItem(KEY)}catch(x){}window.cloud.signOut()}});
 document.addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;var d=b.dataset;
 if(d.obf!==undefined){var i=OB.focus.indexOf(d.obf);if(i>=0)OB.focus.splice(i,1);else if(OB.focus.length<2)OB.focus.push(d.obf);render()}
 else if(d.obh){OB.hours=+d.obh;render()}
@@ -218,13 +255,15 @@ if(CLOUD_ON){$('main').innerHTML='<p class="mute">Loading...</p>'}else render();
 if(window.CLOUD_ON){
 const A="https://www.gstatic.com/firebasejs/10.12.2/";
 const {initializeApp}=await import(A+"firebase-app.js");
-const {getAuth,GoogleAuthProvider,signInWithPopup,signOut,onAuthStateChanged}=await import(A+"firebase-auth.js");
-const {getFirestore,doc,getDoc,setDoc}=await import(A+"firebase-firestore.js");
+const {getAuth,GoogleAuthProvider,signInWithPopup,signOut,onAuthStateChanged,deleteUser,reauthenticateWithPopup}=await import(A+"firebase-auth.js");
+const {getFirestore,doc,getDoc,setDoc,deleteDoc}=await import(A+"firebase-firestore.js");
 const app=initializeApp(window.FB),auth=getAuth(app),db=getFirestore(app);
 window.cloud={
 signIn:()=>signInWithPopup(auth,new GoogleAuthProvider()),
 signOut:()=>signOut(auth),
 token:()=>auth.currentUser?auth.currentUser.getIdToken():Promise.resolve(null),
+deleteAll:async()=>{const u=auth.currentUser;await deleteDoc(doc(db,"actionablyApp",u.uid));await deleteUser(u)},
+reauthDelete:async()=>{const u=auth.currentUser;await reauthenticateWithPopup(u,new GoogleAuthProvider());await deleteUser(u)},
 save:(st)=>setDoc(doc(db,"actionablyApp",auth.currentUser.uid),{state:JSON.stringify(st),updated:Date.now()}).catch(()=>{})
 };
 onAuthStateChanged(auth,async(u)=>{let data=null;
