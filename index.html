@@ -4,6 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Actionably</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#f5f3ff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#14122b" media="(prefers-color-scheme: dark)">
+<link rel="icon" type="image/png" href="/icon-192.png">
+<link rel="apple-touch-icon" href="/icon-180.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;800&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
@@ -17,7 +22,8 @@ body{margin:0;height:100%;background:var(--bg);color:var(--ink);font:400 16px/1.
 #app{max-width:520px;margin:0 auto;min-height:100%;display:flex;flex-direction:column}
 header{padding:18px 20px 6px;display:flex;align-items:center;justify-content:space-between}
 h1,h2,h3{font-family:"Bricolage Grotesque",system-ui,sans-serif;margin:0;letter-spacing:-.02em}
-h1{font-size:28px;font-weight:800}
+h1{font-size:28px;font-weight:800;display:flex;align-items:center;gap:9px}
+.logo{width:23px;height:26px;background:var(--pri);-webkit-mask:url(data:image/png;base64,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) center/contain no-repeat;mask:url(data:image/png;base64,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) center/contain no-repeat;flex:none}
 h2{font-size:24px;font-weight:800;margin-bottom:4px}
 h3{font-size:18px;font-weight:600}
 main{flex:1;padding:8px 20px 96px;overflow-x:hidden}
@@ -62,6 +68,10 @@ nav button[aria-current=true]{color:var(--pri);font-weight:700;box-shadow:inset 
 .sheet>div{background:var(--bg);width:100%;max-width:520px;border-radius:24px 24px 0 0;padding:20px 20px calc(20px + env(safe-area-inset-bottom,0px));max-height:90%;overflow:auto}
 textarea,input[type=text]{width:100%;font:inherit;color:var(--ink);background:var(--card);border:2px solid var(--line);border-radius:12px;padding:10px;margin-top:8px}
 textarea{min-height:90px}
+input[type=number],select{width:100%;font:inherit;color:var(--ink);background:var(--card);border:2px solid var(--line);border-radius:12px;padding:10px;margin-top:8px}
+#syncbar{padding:6px 20px;font-size:13px;margin:0}
+.from{display:inline-block;font-size:12px;font-weight:700;border-radius:8px;padding:2px 8px;border:1px solid var(--line);color:var(--mute)}
+ol.al{margin:6px 0 0;padding-left:20px;font-size:14px}ol.al li{margin:3px 0}
 label{font-weight:700;font-size:14px;display:block;margin-top:12px}
 .gro label{display:flex;gap:10px;align-items:center;font-weight:400;font-size:16px;margin:8px 0}
 .empty{text-align:center;padding:40px 10px}
@@ -69,7 +79,8 @@ label{font-weight:700;font-size:14px;display:block;margin-top:12px}
 </head>
 <body>
 <div id="app">
-<header><h1>Actionably</h1><div class="row"><button class="btn ghost sm" id="inBtn" data-signin="1" hidden>Sign in</button><button class="btn sm" id="addBtn">Add a save</button></div></header>
+<header><h1><span class="logo" role="img" aria-label="Actionably"></span>Actionably</h1><div class="row"><button class="btn ghost sm" id="inBtn" data-signin="1" hidden>Sign in</button><button class="btn sm" id="addBtn">Add a save</button></div></header>
+<p class="warn" id="syncbar" role="status" hidden></p>
 <main id="main"></main>
 <nav><div id="nav"></div></nav>
 </div>
@@ -80,6 +91,7 @@ label{font-weight:700;font-size:14px;display:block;margin-top:12px}
 <label for="shots">Screenshots</label><input type="file" id="shots" accept="image/*" multiple>
 <label for="lnk">Original link (optional)</label><input type="text" id="lnk" placeholder="https://">
 <div id="sgate" hidden style="margin-top:14px"><div class="item"><strong>Create a free account to keep this save.</strong><p class="mute">We will hold on to what you typed. Sign in and it saves right away.</p><button class="btn" data-signin="1" style="margin-top:10px">Continue with Google</button><p class="warn" id="gerr2"></p></div></div>
+<p class="warn" id="serr" role="alert"></p><p class="mute" id="shint"></p>
 <div class="row" style="margin-top:14px"><button class="btn" id="saveIt">Save it</button><button class="btn ghost" id="cancel">Cancel</button></div>
 </div></div>
 <script>
@@ -98,32 +110,57 @@ var SEED=[
 ];
 var S={tab:'saves',saves:SEED.slice(),dec:{},size:4,plan:null,total:0,reps:0,groc:{}};
 try{var r=localStorage.getItem(KEY);if(r){var o=JSON.parse(r);if(o&&o.saves)S=o}}catch(e){}
-function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}if(U&&window.cloud&&!DEL){clearTimeout(_t);_t=setTimeout(function(){window.cloud.save(JSON.parse(JSON.stringify(S)))},800)}}
+function norm(){S.tab=S.tab||'saves';S.completed=S.completed||[];S.weeks=S.weeks||[];S.dec=S.dec||{};S.groc=S.groc||{};if(S.plan&&!S.wk)S.wk=Date.now()}norm();
+var LASTSYNC='',SYNCERR=false;
+function cloudStr(){var c={};for(var k in S)if(k!=='tab')c[k]=S[k];return JSON.stringify(c)}
+function syncBar(on){SYNCERR=on;var e=$('syncbar');if(!e)return;e.hidden=!on;e.textContent=on?'Could not save to your account. Your changes are kept on this device and will retry.':''}
+function push(){_t=null;if(!(U&&window.cloud&&!DEL))return;var str=cloudStr();if(str===LASTSYNC)return;var snap=JSON.parse(str);window.cloud.save(snap).then(function(){LASTSYNC=str;syncBar(false)}).catch(function(){syncBar(true);clearTimeout(_t);_t=setTimeout(push,15000)})}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}if(U&&window.cloud&&!DEL){clearTimeout(_t);_t=setTimeout(push,800)}}
+window.addEventListener('pagehide',function(){if(_t){clearTimeout(_t);push()}});
+document.addEventListener('visibilitychange',function(){if(document.visibilityState==='hidden'&&_t){clearTimeout(_t);push()}});
+window.addEventListener('online',function(){if(SYNCERR)push()});
 function esc(t){return String(t==null?'':t).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
 var $=function(i){return document.getElementById(i)};
 var TABS=[['saves','Saves'],['review','Review'],['plan','Plan'],['progress','Progress']];
+var PT='overview',RM=null,PRE=null,EDIT=null,EDITD=null,EDITERR='',CATS=['Cook','Train','Buy','Learn','Try','Mindset'];
+function partsOf(s){if(Array.isArray(s.parts)&&s.parts.length)return s.parts;return [{act:s.act,min:s.min,sum:s.sum}]}
+function ago(t){if(!t)return '';var d=new Date(t);return d.toLocaleDateString(undefined,{month:'short',day:'numeric'})}
 function nav(){var T=TABS.slice();if(U)T.push(['account','My Account']);$('nav').innerHTML=T.map(function(t){return '<button data-t="'+t[0]+'" aria-current="'+(S.tab===t[0])+'">'+t[1]+'</button>'}).join('')}
-function go(t){S.tab=t;save();render();window.scrollTo(0,0)}
+function go(t){S.tab=t;EDIT=null;EDITD=null;save();render();window.scrollTo(0,0)}
 function themeCount(){var c={};S.saves.forEach(function(s){c[s.theme]=(c[s.theme]||0)+1});return c}
 function picks(){return S.saves.filter(function(s){return S.dec[s.id]==='do'})}
 function queue(){return S.saves.filter(function(s){return !S.dec[s.id]||S.dec[s.id]==='later'}).sort(function(a,b){return (S.dec[a.id]==='later'?1:0)-(S.dec[b.id]==='later'?1:0)||b.id-a.id})}
 function render(){nav();var m=$('main');if(CLOUD_ON&&!U){$('nav').innerHTML='';m.innerHTML=vPreview();$('addBtn').hidden=false;$('inBtn').hidden=false;return}if(!S.profile){$('nav').innerHTML='';m.innerHTML=vOnb();$('addBtn').hidden=true;$('inBtn').hidden=true;return}$('addBtn').hidden=false;$('inBtn').hidden=true;
 if(S.tab==='saves')m.innerHTML=vSaves();
-else if(S.tab==='review')m.innerHTML=vReview(),bindReview();
+else if(S.tab==='review'){if(weekOver())closeWeek();m.innerHTML=vReview(),bindReview()}
 else if(S.tab==='plan')m.innerHTML=vPlan();
 else if(S.tab==='account'&&U)m.innerHTML=vAcct();
 else m.innerHTML=vProg()+'<p style="margin-top:16px"><button class="btn ghost sm" id="editprof">Change my focus and time</button></p>'}
+function vEditSave(s){var d=EDITD;
+var h='<div class="item"><h3>Edit save</h3><label for="ed-title">Title</label><input type="text" id="ed-title" maxlength="80" value="'+esc(d.title)+'"><label for="ed-cat">Category</label><select id="ed-cat">'+CATS.map(function(c){return '<option'+(d.cat===c?' selected':'')+'>'+c+'</option>'}).join('')+'</select><label for="ed-sum">Summary</label><textarea id="ed-sum">'+esc(d.sum)+'</textarea><label>Actions</label><p class="mute">Each action becomes its own task in your week.</p>';
+d.parts.forEach(function(p,i){h+='<div class="row" style="align-items:flex-start"><input type="text" class="ed-act" aria-label="Action '+(i+1)+'" value="'+esc(p.act)+'"><input type="number" class="ed-min" aria-label="Minutes for action '+(i+1)+'" min="1" max="600" value="'+esc(p.min)+'" style="width:84px"><button class="btn ghost sm" data-edrm="'+i+'" style="margin-top:8px"'+(d.parts.length<2?' disabled':'')+'>Remove</button></div>'});
+h+='<div style="margin-top:8px"><button class="btn ghost sm" data-edadd="1"'+(d.parts.length>=7?' disabled':'')+'>Add an action</button></div>';
+if(d.cat==='Cook')h+='<label for="ed-ing">Ingredients (one per line, used for your grocery list)</label><textarea id="ed-ing">'+esc(d.ing)+'</textarea>';
+if(EDITERR)h+='<p class="warn">'+esc(EDITERR)+'</p>';
+return h+'<div class="row" style="margin-top:12px"><button class="btn sm" data-edsave="1">Save changes</button><button class="btn ghost sm" data-edcancel="1">Cancel</button></div></div>'}
+function readEdit(){if(EDIT==null||!EDITD)return;var g=function(i){var e=$(i);return e?e.value:null};var t=g('ed-title');if(t!==null)EDITD.title=t;var c=g('ed-cat');if(c!==null)EDITD.cat=c;var sm=g('ed-sum');if(sm!==null)EDITD.sum=sm;var ig=g('ed-ing');if(ig!==null)EDITD.ing=ig;var as=document.querySelectorAll('.ed-act'),ms=document.querySelectorAll('.ed-min');EDITD.parts=EDITD.parts.map(function(p,i){return {act:as[i]?as[i].value:p.act,min:ms[i]?(+ms[i].value||p.min):p.min,sum:p.sum}})}
 function vSaves(){var tc=themeCount(),top=Object.keys(tc).sort(function(a,b){return tc[b]-tc[a]})[0];
-var h='<h2>Your saves</h2><p class="mute">'+S.saves.length+' saved. Review them each week and do a few.</p>';
+var h='<h2>Your saves</h2><p class="mute">'+S.saves.length+' saved. Each save can hold several actions. Review them each week and pick a few saves to work from.</p>';
 if(!S.saves.length)h+='<div class="empty"><p class="mute">Nothing saved yet. Tap Add a save to start.</p></div>';if(tc[top]>=3)h+='<div class="item"><strong>Pattern:</strong> you saved '+tc[top]+' posts about '+esc(top)+'. Your plan can turn that into a rep goal.</div>';
 S.saves.slice().sort(function(a,b){return b.id-a.id}).forEach(function(s){
-h+='<div class="item"><div class="row sp"><span class="tag '+s.cat+'">'+s.cat+'</span><span class="mute">'+esc(s.src||'')+'</span></div><h3 style="margin-top:8px">'+esc(s.title)+'</h3><p class="mute">'+esc(s.sum)+'</p>'+(s.miss?'<p class="warn">'+esc(s.miss)+'</p>':'')+(s.link?'<p class="mute"><a href="'+esc(s.link)+'" rel="noopener" target="_blank">Original post</a></p>':'')+'</div>'});
+if(EDIT===s.id&&EDITD){h+=vEditSave(s);return}
+var ps=partsOf(s);
+h+='<div class="item"><div class="row sp"><span class="tag '+s.cat+'">'+s.cat+'</span><span class="mute">'+esc(s.src||'')+'</span></div><h3 style="margin-top:8px">'+esc(s.title)+'</h3><p class="mute">'+esc(s.sum)+'</p>'+(s.slides?'<p class="mute">'+s.slides+' slide'+(s.slides>1?'s':'')+' read</p>':'')
++'<p style="margin-top:8px"><strong>'+(ps.length>1?ps.length+' actions':'1 action')+'</strong></p><ol class="al">'+ps.map(function(p){return '<li>'+esc(p.act)+' <span class="mute">('+(+p.min||15)+' min)</span></li>'}).join('')+'</ol>'
++(S.dec[s.id]==='used'?'<p class="mute" style="margin-top:6px">Used in a weekly plan.</p>':'')
++(s.miss?'<p class="warn">'+esc(s.miss)+'</p>':'')+(s.link?'<p class="mute"><a href="'+esc(s.link)+'" rel="noopener" target="_blank">Original post</a></p>':'')
++(RM===s.id?'<div class="row" style="margin-top:10px"><span class="mute">Remove this save?</span><button class="btn sm" data-rmyes="'+s.id+'" style="background:var(--bad);color:var(--onpri)">Yes, remove</button><button class="btn ghost sm" data-rmno="1">Cancel</button></div>':'<div class="row" style="margin-top:10px"><button class="btn ghost sm" data-ed="'+s.id+'">Edit</button><button class="btn ghost sm" data-rm="'+s.id+'">Remove</button></div>')+'</div>'});
 return h}
-function vReview(){var q=queue(),n=picks().length,h='<h2>Weekly review</h2><p class="mute">How many do you want to do this week?</p><div class="chips" role="group" aria-label="Plan size">'+[2,4,6].map(function(k){return '<button class="chip" data-size="'+k+'" aria-pressed="'+(S.size===k)+'">'+k+'</button>'}).join('')+'</div>';
-if(n>=S.size||!q.length){return h+'<div class="empty"><h3>'+n+' picked</h3><p class="mute" style="margin:6px 0 16px">'+(n?'Ready to build your week.':'Nothing picked. Reset to review again.')+'</p>'+(n?'<button class="btn" id="build">Build my plan</button> ':'')+'<button class="btn ghost" id="resetRev">Start over</button></div>'+(n?vGoals():'')}
-h+='<p class="mute">'+n+' of '+S.size+' picked. New saves come first.</p><div class="stack" id="stack">';
+function vReview(){var q=queue(),n=picks().length,h='<h2>Weekly review</h2><p class="mute">How many saves do you want to work from this week? Each save can bring several actions.</p>'+(S.sizeNote?'<p class="mute">'+esc(S.sizeNote)+'</p>':'')+'<div class="chips" role="group" aria-label="Saves this week">'+[2,4,6].map(function(k){return '<button class="chip" data-size="'+k+'" aria-pressed="'+(S.size===k)+'">'+k+'</button>'}).join('')+'</div>';
+if(n>=S.size||!q.length){return h+'<div class="empty"><h3>'+n+' save'+(n===1?'':'s')+' picked</h3><p class="mute" style="margin:6px 0 16px">'+(n?'Ready to build your week.':'Nothing picked. Reset to review again.')+'</p>'+(n?'<button class="btn" id="build">Build my plan</button> ':'')+'<button class="btn ghost" id="resetRev">Start over</button></div>'+(n?vGoals():'')}
+h+='<p class="mute">'+n+' of '+S.size+' saves picked. New saves come first.</p><div class="stack" id="stack">';
 if(q[1])h+=card(q[1],true);h+=card(q[0],false)+'</div><div class="acts"><button class="btn ghost" data-d="drop">Drop</button><button class="btn ghost" data-d="later">Later</button><button class="btn" data-d="do">Do it</button></div>';return h}
-function card(s,back){return '<div class="card'+(back?' back':'')+'" '+(back?'aria-hidden="true"':'id="top"')+'><span class="stampL">DROP</span><span class="stampR">DO IT</span><div class="row sp"><span class="tag '+s.cat+'">'+s.cat+'</span><span class="mute">'+s.min+' min</span></div><div class="big">'+esc(s.title)+'</div><p class="mute">'+esc(s.sum)+'</p><p><strong>Next step:</strong> '+esc(s.act)+'</p>'+(s.miss?'<p class="warn">'+esc(s.miss)+'</p>':'')+'</div>'}
+function card(s,back){return '<div class="card'+(back?' back':'')+'" '+(back?'aria-hidden="true"':'id="top"')+'><span class="stampL">DROP</span><span class="stampR">DO IT</span><div class="row sp"><span class="tag '+s.cat+'">'+s.cat+'</span><span class="mute">'+partsOf(s).length+' action'+(partsOf(s).length>1?'s':'')+' · '+s.min+' min</span></div><div class="big">'+esc(s.title)+'</div><p class="mute">'+esc(s.sum)+'</p><p><strong>First action:</strong> '+esc(s.act)+'</p>'+(partsOf(s).length>1?'<p class="mute">+ '+(partsOf(s).length-1)+' more action'+(partsOf(s).length>2?'s':'')+', spread across your week</p>':'')+(s.miss?'<p class="warn">'+esc(s.miss)+'</p>':'')+'</div>'}
 function decide(d){var q=queue();if(!q.length)return;S.dec[q[0].id]=d;save();render()}
 function bindReview(){var t=$('top');if(!t)return;var x0=null,dx=0;
 t.addEventListener('pointerdown',function(e){x0=e.clientX;t.setPointerCapture(e.pointerId)});
@@ -131,16 +168,28 @@ t.addEventListener('pointermove',function(e){if(x0===null)return;dx=e.clientX-x0
 t.addEventListener('pointerup',function(){if(x0===null)return;var d=dx;x0=null;dx=0;if(d>90)decide('do');else if(d<-90)decide('drop');else{t.style.transform='';t.querySelector('.stampR').style.opacity=0;t.querySelector('.stampL').style.opacity=0}})}
 var DAYS=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],SUGG=null,OB={focus:[],hours:null,style:null};
 function goalItems(){return (S.goals||[]).map(function(g,i){var d=String(g.deadline||'Fri').slice(0,3);if(DAYS.indexOf(d)<0)d='Fri';return {id:'g'+i,goal:true,t:String(g.title),metric:String(g.metric||''),step:String(g.why||''),min:+g.est_minutes||30,target:+g.target||5,cur:0,day:d,done:false}})}
-function finish(it){S.history=(S.history||[]).concat((S.plan||[]).map(function(x){return {goal_title:x.t,target:x.goal?x.target:1,completed:x.goal?(x.cur||0):(x.done?1:0)}})).slice(-20);S.plan=it;S.groc={};S.goals=[];SUGG=null;save();go('plan')}
-function localBuild(){var gs=goalItems(),items=[];
-picks().slice(0,Math.max(1,S.size-gs.length)).forEach(function(s){items.push({id:'p'+s.id,t:s.title,step:s.act,min:s.min,ing:s.ing||null,link:s.link||null,miss:s.miss||null,done:false})});
-var gap=Math.max(1,Math.floor(7/Math.max(items.length,1)));items.forEach(function(it,i){it.day=DAYS[(i*gap)%7]});finish(items.concat(gs))}
+function pushHistory(){S.history=(S.history||[]).concat((S.plan||[]).map(function(x){return {goal_title:x.t,target:x.goal?x.target:1,completed:x.goal?(x.cur||0):(x.done?1:0)}})).slice(-20)}
+function weekStats(plan){var d=0,md=0,mp=0,di=[],oi=[];plan.forEach(function(x){var dn=isDone(x),m=+x.min||0,nm=x.goal?x.t:(x.step||x.t);mp+=m;if(dn){d++;md+=m;di.push(nm)}else{if(x.goal&&x.cur)md+=Math.round(m*Math.min(1,x.cur/x.target));oi.push(nm)}});return {planned:plan.length,done:d,minPlanned:mp,minDone:md,doneItems:di.slice(0,12),openItems:oi.slice(0,12)}}
+function archiveWeek(){if(!S.plan||!S.plan.length)return null;var w=weekStats(S.plan);w.start=S.wk||Date.now();w.end=Date.now();w.size=S.size;S.weeks=(S.weeks||[]).concat([w]).slice(-26);return w}
+function weekOver(){return !!(S.plan&&S.plan.length&&(S.plan.every(isDone)||Date.now()-(S.wk||Date.now())>=7*864e5))}
+function closeWeek(){if(!S.plan)return;pushHistory();var w=archiveWeek();if(w){var L=[2,4,6],i=L.indexOf(S.size);if(i<0)i=1;var r=w.planned?w.done/w.planned:0,ni=i;if(r>=1)ni=Math.min(2,i+1);else if(r<.5)ni=Math.max(0,i-1);S.size=L[ni];w.nextSize=S.size;S.sizeNote='Last week you finished '+w.done+' of '+w.planned+' actions. '+(ni>i?'This week goes up to '+S.size+' saves.':ni<i?'This week steps down to '+S.size+' saves.':'This week stays at '+S.size+' saves.')}S.plan=null;S.wk=null;S.groc={};save()}
+function finish(it){if(S.plan){pushHistory();archiveWeek()}S.plan=it;S.wk=Date.now();S.groc={};S.goals=[];S.sizeNote='';SUGG=null;save();go('plan')}
+var FOCUSCAT={'Money / business':['Buy','Learn','Mindset'],'Fitness':['Train','Cook'],'Career':['Learn','Mindset'],'Habits and discipline':['Mindset','Train'],'Learning':['Learn'],'Relationships':['Try','Mindset']};
+function fitScore(s){var f=(S.profile&&S.profile.focus)||[],sc=0;f.forEach(function(k){if((FOCUSCAT[k]||[]).indexOf(s.cat)>=0)sc+=2;var w=k.toLowerCase().split(/[^a-z]+/).filter(function(x){return x.length>3});var hay=((s.theme||'')+' '+(s.title||'')).toLowerCase();w.forEach(function(x){if(hay.indexOf(x)>=0)sc+=1})});return sc}
+function budgetMins(){return Math.round(((S.profile&&S.profile.hours)||3)*60)}
+function picksMin(){return picks().slice(0,S.size).reduce(function(a,s){return a+(+partsOf(s)[0].min||s.min||15)},0)}
+function goalBudget(){var b=budgetMins();return Math.max(Math.round(b*0.3),b-picksMin())}
 function build(){var bt=$('build');if(bt){bt.disabled=true;bt.textContent='Building your week...'}
-var gs=goalItems(),pk=picks().slice(0,Math.max(1,S.size-gs.length)),gm=gs.reduce(function(a,g){return a+g.min},0),hrs=Math.max(0.5,(((S.profile&&S.profile.hours)||3)*60-gm)/60);
-ai('plan',{size:pk.length,hours:hrs,picks:pk.map(function(s){return {id:s.id,category:s.cat,title:s.title,steps_or_items:s.ing||[s.act],time_needed:s.min,missing_info:s.miss||null,source_link:s.link||null}})}).then(function(r){
-var by={};S.saves.forEach(function(s){by[s.id]=s});
-var it=(r.plan||[]).filter(function(p){return by[p.ref]}).map(function(p){var s=by[p.ref];return {id:'p'+s.id,t:s.title,step:p.next_step,min:+p.est_minutes||s.min,day:DAYS.indexOf(p.day)>=0?p.day:'Wed',ing:s.ing||null,link:s.link||null,miss:s.miss||null,done:false}});
-if(!it.length||it.length>pk.length)throw 0;finish(it.concat(gs))}).catch(localBuild)}
+var gs=goalItems(),gm=gs.reduce(function(a,g){return a+g.min},0),budget=Math.max(20,budgetMins()-gm);
+var pk=picks().map(function(s,i){return {s:s,i:i,f:fitScore(s)}}).sort(function(a,b){return b.f-a.f||a.i-b.i}).slice(0,Math.max(1,S.size-gs.length)).map(function(x){return x.s});
+var cand=[],used=0;
+function mk(s,ps,k){var p=ps[k];return {id:'p'+s.id+'_'+k,t:s.title,step:p.act||s.act,note:ps.length>1?(p.sum||''):'',part:ps.length>1?('Action '+(k+1)+' of '+ps.length):'',min:+p.min||s.min,ing:(k===0)?(s.ing||null):null,link:s.link||null,miss:null,done:false,_o:pk.indexOf(s)*100+k}}
+var maxK=0;pk.forEach(function(s){maxK=Math.max(maxK,Math.min(6,partsOf(s).length))});
+for(var k=0;k<maxK;k++){pk.forEach(function(s){var ps=partsOf(s).slice(0,6);if(k>=ps.length)return;var it=mk(s,ps,k);if(!cand.length||used+it.min<=budget){cand.push(it);used+=it.min}})}
+cand.sort(function(a,b){return a._o-b._o});
+var n=cand.length,daily=!(S.profile&&S.profile.style==='weekly'),slots=daily?DAYS:['Fri','Sat','Sun'];
+cand.forEach(function(it,i){it.day=slots[Math.min(slots.length-1,Math.floor(i*slots.length/Math.max(n,1)))];delete it._o});
+S.planMin=used+gm;pk.forEach(function(s){if(cand.some(function(c){return c.id.indexOf('p'+s.id+'_')===0}))S.dec[s.id]='used'});finish(cand.concat(gs))}
 function vGoals(){var h='<div style="text-align:left;margin-top:20px"><h3>Goals for this week</h3>';
 (S.goals||[]).forEach(function(g,i){h+='<div class="item"><strong>'+esc(g.title)+'</strong><p class="mute">'+esc(g.target)+' '+esc(g.metric)+' by '+esc(g.deadline)+'</p><button class="btn ghost sm" data-grm="'+i+'" style="margin-top:8px">Remove</button></div>'});
 if(SUGG==='loading')h+='<p class="mute">Thinking about your week...</p>';
@@ -159,43 +208,118 @@ h+='</div><h3>How do you like to work?</h3><div class="chips">';
 [['daily','Small daily steps'],['weekly','One bigger weekly push']].forEach(function(o){h+=ch(OB.style===o[0],'data-obs',o[0],o[1])});
 return h+'</div><button class="btn" id="obdone" style="margin-top:14px"'+((OB.focus.length&&OB.hours&&OB.style)?'':' disabled')+'>Start my week</button>'}
 function vPlan(){if(!S.plan)return '<div class="empty"><h2>No plan yet</h2><p class="mute" style="margin:6px 0 16px">Pick saves in your weekly review first.</p><button class="btn" data-t="review">Start review</button></div>';
-var h='<h2>This week</h2><p class="mute">'+S.plan.length+' items. Tap I did it when you finish one.</p>';
-S.plan.forEach(function(it){h+='<div class="item"><div class="row sp"><span class="day">'+it.day+'</span><span class="mute">'+it.min+' min</span></div><h3>'+esc(it.t)+'</h3><p class="mute">'+esc(it.step)+'</p>'+(it.miss?'<p class="warn">'+esc(it.miss)+'</p>':'');
+var left=S.plan.filter(function(x){return !isDone(x)});
+if(!left.length)return '<div class="empty"><h2>All done this week</h2><p class="mute" style="margin:6px 0 16px">Every action is finished. See them under Completed Actions in Progress.</p><div class="row" style="justify-content:center"><button class="btn" id="nextwk">Start next week</button><button class="btn ghost" data-t="progress" data-pt="done">Completed actions</button></div></div>';
+var h='<h2>This week</h2><p class="mute">'+left.length+' action'+(left.length>1?'s':'')+' left. Tap I did it and it moves to Completed Actions in Progress.</p>'+(S.planMin?'<p class="mute">About '+S.planMin+' min planned of your '+(((S.profile&&S.profile.hours)||3))+' hour'+(((S.profile&&S.profile.hours)||3)>1?'s':'')+' a week.</p>':'');
+if(weekOver())h+='<div class="item"><strong>This week is over.</strong><p class="mute">Start next week to see your summary and pick new saves.</p><button class="btn sm" id="nextwk" style="margin-top:8px">Start next week</button></div>';
+left.forEach(function(it){h+='<div class="item"><div class="row sp"><span class="day">'+it.day+'</span><span class="mute">'+(it.part?esc(it.part)+' · ':'')+it.min+' min</span></div>';
+if(it.goal)h+='<span class="from">Goal</span><h3 style="margin-top:6px">'+esc(it.t)+'</h3>'+(it.step?'<p class="mute">'+esc(it.step)+'</p>':'');
+else h+='<span class="from">From save: '+esc(it.t)+'</span><h3 style="margin-top:6px">'+esc(it.step)+'</h3>'+(it.note?'<p class="mute">'+esc(it.note)+'</p>':'');
+h+=(it.miss?'<p class="warn">'+esc(it.miss)+'</p>':'');
 if(it.goal){var c=it.cur||0;h+='<div class="row sp" style="margin-top:10px"><span><strong>'+c+' / '+it.target+'</strong> <span class="mute">'+esc(it.metric)+'</span></span><button class="btn sm" data-rep="'+it.id+'">+1 done</button></div><div class="bar"><i style="width:'+Math.min(100,c/it.target*100)+'%"></i></div>'}
-else h+='<div style="margin-top:10px"><button class="stamp'+(it.done?' on':'')+'" data-done="'+it.id+'" aria-pressed="'+it.done+'">'+(it.done?'Done':'I did it')+'</button></div>';
+else h+='<div style="margin-top:10px"><button class="stamp" data-done="'+it.id+'" aria-pressed="false">I did it</button></div>';
 h+='</div>'});
-var ing=[];S.plan.forEach(function(it){(it.ing||[]).forEach(function(g){if(ing.indexOf(g)<0)ing.push(g)})});
+var ing=[];left.forEach(function(it){(it.ing||[]).forEach(function(g){if(ing.indexOf(g)<0)ing.push(g)})});
 if(ing.length){h+='<div class="item gro"><h3>Grocery list</h3>';ing.forEach(function(g){h+='<label><input type="checkbox" data-g="'+esc(g)+'"'+(S.groc[g]?' checked':'')+'> '+esc(g)+'</label>'});h+='</div>'}
 return h}
 function isDone(it){return it.goal?(it.cur||0)>=it.target:it.done}
-function vProg(){if(!S.plan)return '<div class="empty"><h2>Progress</h2><p class="mute">Build a plan to start tracking.</p></div>';
+function pct(a,b){return b?Math.round(a/b*100):0}
+function dfmt(t){return new Date(t).toLocaleDateString(undefined,{month:'short',day:'numeric'})}
+function streak(){var n=0,W=S.weeks||[];for(var i=W.length-1;i>=0;i--){if(W[i].planned&&W[i].done/W[i].planned>=.5)n++;else break}return n}
+function wCard(w,title){var p=pct(w.done,w.planned);return '<div class="item"><div class="row sp"><h3>'+esc(title)+'</h3><span class="mute">'+p+'%</span></div><p><strong>'+w.done+' of '+w.planned+'</strong> actions done</p><div class="bar"><i style="width:'+p+'%"></i></div><p class="mute">'+w.minDone+' of '+w.minPlanned+' min</p>'
++((w.doneItems||[]).length?'<p class="mute" style="margin-top:8px"><strong>Finished:</strong> '+w.doneItems.slice(0,5).map(esc).join('; ')+(w.done>5?' and '+(w.done-5)+' more':'')+'</p>':'')
++((w.openItems||[]).length?'<p class="mute" style="margin-top:6px"><strong>Not finished:</strong> '+w.openItems.slice(0,3).map(esc).join('; ')+((w.planned-w.done)>3?' and '+(w.planned-w.done-3)+' more':'')+'</p>':'')
++(w.nextSize?'<p class="mute" style="margin-top:6px">Next week: '+w.nextSize+' saves.</p>':'')+'</div>'}
+function vProg(){var C=S.completed||[],W=S.weeks||[];if(!S.plan&&!C.length&&!W.length)return '<div class="empty"><h2>Progress</h2><p class="mute">Build a plan to start tracking.</p></div>';
+var h='<h2>Progress</h2><div class="chips" role="group" aria-label="Progress view"><button class="chip" data-pt="overview" aria-pressed="'+(PT==='overview')+'">Overview</button><button class="chip" data-pt="done" aria-pressed="'+(PT==='done')+'">Completed Actions ('+C.length+')</button><button class="chip" data-pt="weeks" aria-pressed="'+(PT==='weeks')+'">Weekly Summary</button></div>';
+if(PT==='done'){h+='<h3>Completed Actions</h3>';
+if(!C.length)return h+'<div class="empty"><p class="mute">Nothing completed yet. Finish an action in Plan and it shows up here.</p></div>';
+C.slice().reverse().forEach(function(c){h+='<div class="item"><div class="row sp"><span class="day" style="color:var(--ok)">Done</span><span class="mute">'+esc(ago(c.at))+'</span></div><h3 style="margin-top:4px">'+esc(c.t)+'</h3><p class="mute">'+(c.goal?'Goal: '+esc(c.target)+' '+esc(c.metric):(c.from?'From save: '+esc(c.from):esc(c.step)))+'</p><div style="margin-top:8px"><button class="btn ghost sm" data-undo="'+esc(c.pid)+'" data-wk="'+(c.wk||'')+'">Undo</button></div></div>'});return h}
+if(PT==='weeks'){h+='<h3>Weekly Summary</h3>';var st=streak();
+if(st)h+='<div class="item"><strong>'+st+' week'+(st>1?'s':'')+' in a row</strong><p class="mute">Finishing at least half of your actions each week.</p></div>';
+if(S.plan)h+=wCard(weekStats(S.plan),'This week so far');
+if(!W.length)h+='<div class="item mute">Your first full summary appears when you finish a week and start the next one.</div>';
+W.slice().reverse().forEach(function(w){h+=wCard(w,'Week of '+dfmt(w.start))});return h}
+if(!S.plan)return h+'<div class="empty"><p class="mute">No plan this week. Pick saves in Review to build one.</p><button class="btn" data-t="review" style="margin-top:12px">Start review</button></div>';
 var d=S.plan.filter(isDone).length,n=S.plan.length;
-return '<h2>This week</h2><div class="item"><div class="big-n">'+d+' of '+n+'</div><p class="mute">items done</p><div class="bar"><i style="width:'+(n?d/n*100:0)+'%"></i></div></div><div class="item"><div class="big-n">'+S.total+'</div><p class="mute">total completed since you started</p></div>'+(d===n&&n?'<div class="item"><strong>Week complete.</strong> Next week can be one item bigger.</div>':'<div class="item mute">Finishing at least half keeps next week the same size. Finishing under half shrinks it.</div>')}
+return h+'<div class="item"><div class="big-n">'+d+' of '+n+'</div><p class="mute">actions done this week</p><div class="bar"><i style="width:'+(n?d/n*100:0)+'%"></i></div></div><div class="item"><div class="big-n">'+S.total+'</div><p class="mute">total actions completed since you started</p></div>'+(d===n&&n?'<div class="item"><strong>Week complete.</strong> Start next week when you are ready.<div style="margin-top:8px"><button class="btn sm" id="nextwk">Start next week</button></div></div>':'<div class="item mute">Finish every action and next week adds a save (2, 4, then 6). Finish under half and it steps down.</div>')}
+function logDone(it){S.completed=S.completed||[];S.completed.push({pid:it.id,wk:S.wk||0,t:it.goal?it.t:(it.step||it.t),from:it.goal?'':it.t,step:it.step||'',goal:!!it.goal,metric:it.metric||'',target:it.target||0,at:Date.now()});S.completed=S.completed.slice(-300)}
 document.addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;
-if(b.dataset.t)go(b.dataset.t);
+if(b.dataset.pt)PT=b.dataset.pt;
+if(b.dataset.rm){RM=+b.dataset.rm;render()}
+else if(b.dataset.rmno){RM=null;render()}
+else if(b.dataset.ed){var es=S.saves.filter(function(x){return x.id===+b.dataset.ed})[0];if(es){EDIT=es.id;EDITERR='';EDITD={title:es.title,cat:es.cat,sum:es.sum||'',ing:(es.ing||[]).join('\n'),parts:partsOf(es).map(function(p){return {act:p.act,min:p.min,sum:p.sum}})};render()}}
+else if(b.dataset.edcancel){EDIT=null;EDITD=null;EDITERR='';render()}
+else if(b.dataset.edadd){readEdit();EDITD.parts.push({act:'',min:15,sum:''});render()}
+else if(b.dataset.edrm!==undefined){readEdit();if(EDITD.parts.length>1)EDITD.parts.splice(+b.dataset.edrm,1);render()}
+else if(b.dataset.edsave){readEdit();var s0=S.saves.filter(function(x){return x.id===EDIT})[0],tt=String(EDITD.title).trim(),acts=EDITD.parts.filter(function(p){return String(p.act).trim()});
+if(!s0||!tt||!acts.length){EDITERR='Add a title and at least one action.';render()}
+else{s0.title=tt.slice(0,80);s0.cat=EDITD.cat;s0.sum=String(EDITD.sum).trim();s0.parts=acts.map(function(p){return {act:String(p.act).trim(),min:Math.min(600,Math.max(1,+p.min||15)),sum:p.sum||''}});s0.act=s0.parts[0].act;s0.min=s0.parts.reduce(function(a,p){return a+p.min},0);var il=String(EDITD.ing).split('\n').map(function(x){return x.trim()}).filter(Boolean);s0.ing=(s0.cat==='Cook'&&il.length)?il:null;s0.miss=null;EDIT=null;EDITD=null;EDITERR='';save();render()}}
+else if(b.id==='nextwk'){closeWeek();go('review')}
+else if(b.dataset.rmyes){var rid=+b.dataset.rmyes;S.saves=S.saves.filter(function(x){return x.id!==rid});delete S.dec[rid];RM=null;save();render()}
+else if(b.dataset.undo){var up=b.dataset.undo,uw=+b.dataset.wk||0;var ci=-1;(S.completed||[]).forEach(function(c,k){if(c.pid===up&&(c.wk||0)===uw)ci=k});if(ci>=0){S.completed.splice(ci,1);S.total=Math.max(0,S.total-1);if(uw===(S.wk||0)){var pi=(S.plan||[]).filter(function(x){return x.id===up})[0];if(pi){pi.done=false;if(pi.goal)pi.cur=Math.max(0,pi.target-1)}}save();render()}}
+else if(b.dataset.t)go(b.dataset.t);
+else if(b.dataset.pt)render();
 else if(b.dataset.size){S.size=+b.dataset.size;save();render()}
 else if(b.dataset.d)decide(b.dataset.d);
 else if(b.id==='build')build();
 else if(b.id==='resetRev'){S.dec={};save();render()}
-else if(b.dataset.done){var it=S.plan.filter(function(x){return x.id===b.dataset.done})[0];if(it&&!it.done){it.done=true;S.total++;save();render()}}
-else if(b.dataset.rep){var g=S.plan.filter(function(x){return x.id===b.dataset.rep})[0];if(g&&(g.cur||0)<g.target){g.cur=(g.cur||0)+1;if(g.cur===g.target)S.total++;save();render()}}
+else if(b.dataset.done){var it=S.plan.filter(function(x){return x.id===b.dataset.done})[0];if(it&&!it.done){it.done=true;S.total++;logDone(it);save();b.classList.add('on');b.textContent='Done';b.setAttribute('aria-pressed','true');setTimeout(render,650)}}
+else if(b.dataset.rep){var g=S.plan.filter(function(x){return x.id===b.dataset.rep})[0];if(g&&(g.cur||0)<g.target){g.cur=(g.cur||0)+1;if(g.cur===g.target){S.total++;logDone(g)}save();render()}}
 });
-document.addEventListener('change',function(e){if(e.target.dataset&&e.target.dataset.g!==undefined){S.groc[e.target.dataset.g]=e.target.checked;save()}});
+document.addEventListener('change',function(e){if(e.target.dataset&&e.target.dataset.g!==undefined){S.groc[e.target.dataset.g]=e.target.checked;save()}else if(e.target.id==='ed-cat'){readEdit();render()}});
 function sheet(o){$('sheet').classList.toggle('open',o)}
-$('addBtn').onclick=function(){$('sgate').hidden=true;sheet(true);$('txt').focus()};$('cancel').onclick=function(){sheet(false)};
+$('addBtn').onclick=function(){$('sgate').hidden=true;$('serr').textContent='';$('shint').textContent='';sheet(true);$('txt').focus()};$('cancel').onclick=function(){sheet(false)};
 function shrink(f){return new Promise(function(res){var r=new FileReader();r.onload=function(){var im=new Image();im.onload=function(){var k=Math.min(1,1100/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=im.width*k;c.height=im.height*k;c.getContext('2d').drawImage(im,0,0,c.width,c.height);res(c.toDataURL('image/jpeg',.7).split(',')[1])};im.onerror=function(){res(null)};im.src=r.result};r.onerror=function(){res(null)};r.readAsDataURL(f)})}
-function ai(mode,body){body.mode=mode;var tk=(U&&window.cloud)?window.cloud.token():Promise.resolve(null);return tk.then(function(t){var h={'Content-Type':'application/json'};if(t)h.Authorization='Bearer '+t;return fetch('/api/ai',{method:'POST',headers:h,body:JSON.stringify(body)})}).then(function(r){if(!r.ok)throw new Error('ai '+r.status);return r.json()})}
+function ai(mode,body){body.mode=mode;var tk=(U&&window.cloud)?window.cloud.token():Promise.resolve(null);return tk.then(function(t){var h={'Content-Type':'application/json'};if(t)h.Authorization='Bearer '+t;return fetch('/api/ai',{method:'POST',headers:h,body:JSON.stringify(body)})}).then(function(r){if(!r.ok)return r.json().catch(function(){return {}}).then(function(j){var e=new Error('ai '+r.status);e.status=r.status;e.code=j&&j.code;throw e});return r.json()})}
+function aiWhy(e){if(e&&e.status===429)return e.code==='daily_limit'?'You have reached today\'s reading limit. It resets tomorrow.':'You have reached the hourly reading limit. Try again in a little while.';if(e&&e.status===401)return 'Please sign in again.';if(e&&e.code==='not_configured')return 'The server is not set up correctly.';return 'Reading failed. Check your connection and try again.'}
 function nextId(){return S.saves.length?Math.max.apply(null,S.saves.map(function(s){return s.id}))+1:1}
 function addSave(o){S.saves.push(o);S.tab='saves';save();$('saveIt').disabled=false;$('saveIt').textContent='Save it';$('txt').value='';$('lnk').value='';$('shots').value='';sheet(false);render()}
 function heur(t,n,l){var low=t.toLowerCase(),cat='Mindset';if(/recipe|cup|tbsp|bake|cook|ingredient/.test(low))cat='Cook';else if(/workout|reps|sets|squat|run/.test(low))cat='Train';else if(/buy|\$|deal|review/.test(low))cat='Buy';
-return {id:nextId(),cat:cat,title:t?t.split(/\s+/).slice(0,8).join(' '):'Screenshot save ('+n+' image'+(n>1?'s':'')+')',src:'you',theme:cat==='Mindset'?'mindset':cat.toLowerCase(),sum:t?t.slice(0,110):'Screenshots added.',act:'Review this save and choose one concrete step.',min:15,link:/^https?:\/\//.test(l)?l:null,miss:(n===1&&!t)?'One image only. If this is a carousel, add the other slides.':null}}
-$('saveIt').onclick=function(){var t=$('txt').value.trim(),fs=[].slice.call($('shots').files).slice(0,4),l=$('lnk').value.trim();if(!t&&!fs.length){$('txt').focus();return}
+return {id:nextId(),cat:cat,title:t?t.split(/\s+/).slice(0,8).join(' '):'Screenshot save ('+n+' image'+(n>1?'s':'')+')',src:'you',theme:cat==='Mindset'?'mindset':cat.toLowerCase(),sum:t?t.slice(0,110):'Screenshots added.',act:'Review this save and choose one concrete step.',min:15,link:/^https?:\/\//.test(l)?l:null,miss:n?'Text could not be read automatically. Remove this save and add it again to retry.':null}}
+var SHARE_DONE=false;
+function takeShared(){if(SHARE_DONE||!/[?&]shared=1/.test(location.search)||!window.caches)return;SHARE_DONE=true;
+caches.open('share-inbox').then(function(c){return c.match('/_shared/meta').then(function(m){if(!m)return;return m.json().then(function(meta){var n=meta.count||0,rq=[];for(var i=0;i<n;i++)rq.push(c.match('/_shared/'+i));
+return Promise.all(rq).then(function(rs){return Promise.all(rs.filter(Boolean).map(function(r){return r.blob()}))}).then(function(bl){
+var tx=[meta.title,meta.text].filter(Boolean).join('\n').trim(),um=(tx+' '+(meta.url||'')).match(/https?:\/\/\S+/),url=meta.url||(um?um[0]:'');
+var cap=tx.replace(/https?:\/\/\S+/g,'').trim();
+if(bl.length&&window.DataTransfer){var dt=new DataTransfer();bl.forEach(function(b,i){dt.items.add(new File([b],'slide'+(i+1)+'.jpg',{type:b.type||'image/jpeg'}))});$('shots').files=dt.files}
+$('txt').value=cap;$('lnk').value=url;$('serr').textContent='';
+$('shint').textContent=(!bl.length&&!cap)?'A link alone cannot be read. Add screenshots or paste the caption so Actionably can find the actions.':(bl.length?bl.length+' image'+(bl.length>1?'s':'')+' received. Check they are in slide order, then tap Save it.':'');
+$('sgate').hidden=true;sheet(true);
+return Promise.all([c.delete('/_shared/meta')].concat(bl.map(function(_,i){return c.delete('/_shared/'+i)})))})})})}).catch(function(){}).then(function(){try{history.replaceState(null,'',location.pathname)}catch(e){}})}
+if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js').catch(function(){});
+var BATCH=3;
+function extractBatch(t,ims,from,total,l){return ai('extract',{text:from===0?t:'',images:ims,slide_start:from+1,slide_end:from+ims.length,slide_total:total,instructions:'These are slides '+(from+1)+' to '+(from+ims.length)+' of '+total+' from one saved post. Read the text on EVERY slide fully. Do not report slides as missing or cut off. Return one concrete suggested_action based on these slides.'})}
+function sfail(btn,msg){$('serr').textContent=msg;btn.disabled=false;btn.textContent='Save it'}
+$('saveIt').onclick=function(){var t=$('txt').value.trim(),fs=[].slice.call($('shots').files),l=$('lnk').value.trim();$('serr').textContent='';if(!t&&!fs.length){$('txt').focus();return}
 if(CLOUD_ON&&!U){GUEST_PENDING=true;$('sgate').hidden=false;return}
 var btn=$('saveIt');btn.disabled=true;btn.textContent='Reading your save...';
-Promise.all(fs.map(shrink)).then(function(im){im=im.filter(Boolean);
-return ai('extract',{text:t,images:im}).then(function(x){var c=String(x.category||'mindset');c=c.charAt(0).toUpperCase()+c.slice(1);
-addSave({id:nextId(),cat:c,title:String(x.title||'Untitled').slice(0,80),src:'you',theme:String(x.theme||c).toLowerCase(),sum:String(x.summary||''),ing:(c==='Cook'&&Array.isArray(x.steps_or_items))?x.steps_or_items.map(String):null,act:String(x.suggested_action||'Review this save and choose one step.'),min:+x.time_needed||15,link:/^https?:\/\//.test(l)?l:null,miss:x.missing_info?String(x.missing_info):null})})
-.catch(function(){addSave(heur(t,fs.length,l))})})};
+Promise.all(fs.map(shrink)).then(function(all){var failed=all.filter(function(x){return !x}).length,im=all.filter(Boolean),total=im.length,groups=[];
+if(fs.length&&!im.length){sfail(btn,'These images could not be opened. Try screenshots saved as PNG or JPG.');return}
+for(var k=0;k<im.length;k+=BATCH)groups.push({from:k,ims:im.slice(k,k+BATCH)});
+if(!groups.length)groups.push({from:0,ims:[]});
+var results=[],bad=[],seq=Promise.resolve();
+groups.forEach(function(g){seq=seq.then(function(){btn.textContent=total>BATCH?('Reading slides '+(g.from+1)+'-'+Math.min(total,g.from+BATCH)+' of '+total+'...'):'Reading your save...';
+return extractBatch(t,g.ims,g.from,total,l).then(function(x){results.push({g:g,x:x})}).catch(function(e){bad.push({g:g,e:e})})})});
+return seq.then(function(){
+var hard=bad.filter(function(b){return b.e&&(b.e.status===429||b.e.status===401)})[0];
+if(!results.length){if(hard||!t){sfail(btn,aiWhy(bad[0]&&bad[0].e));return}var h=heur(t,0,l);h.miss='We could not read this automatically, so only your text was saved. You can edit it.';h.slides=0;addSave(h);return}
+var first=results[0].x,c=String(first.category||'mindset');c=c.charAt(0).toUpperCase()+c.slice(1);
+var parts=[],ing=[];
+results.forEach(function(r){var x=r.x,a=String(x.suggested_action||'').trim(),sm=String(x.summary||'').trim(),mn=+x.time_needed||15;
+var acts=Array.isArray(x.actions)&&x.actions.length?x.actions.map(function(z){return typeof z==='string'?{act:z,min:mn}:{act:String(z.action||z.act||''),min:+z.minutes||mn}}).filter(function(z){return z.act}):(a?[{act:a,min:mn}]:[]);
+if(!acts.length)acts=[{act:'Review these slides and choose one concrete step.',min:mn}];
+acts.forEach(function(z,zi){if(!parts.some(function(p){return p.act.toLowerCase()===z.act.toLowerCase()}))parts.push({act:z.act,min:z.min,sum:zi===0?sm:''})});
+if(Array.isArray(x.ingredients))x.ingredients.forEach(function(v){v=String(v).trim();if(v&&ing.indexOf(v)<0)ing.push(v)})});
+parts=parts.slice(0,7);
+var miss=null,notes=[];
+if(bad.length)notes.push('Slides '+bad.map(function(b){return (b.g.from+1)+'-'+(b.g.from+b.g.ims.length)}).join(', ')+' could not be read'+(hard?': '+aiWhy(hard.e):'.'));
+if(failed)notes.push(failed+' image'+(failed>1?'s':'')+' could not be opened.');
+if(notes.length)miss=notes.join(' ')+' Remove this save and add it again to retry.';
+var sum=results.map(function(r){return String(r.x.summary||'').trim()}).filter(Boolean).join(' ');
+addSave({id:nextId(),cat:c,title:String(first.title||'Untitled').slice(0,80),src:'you',theme:String(first.theme||c).toLowerCase(),sum:sum.length>420?sum.slice(0,417)+'...':sum,ing:(c==='Cook'&&ing.length)?ing:null,act:parts[0].act,parts:parts,slides:total-bad.reduce(function(a,b){return a+b.g.ims.length},0),min:parts.reduce(function(a,p){return a+(+p.min||0)},0)||15,link:/^https?:\/\//.test(l)?l:null,miss:miss})})})
+.catch(function(){sfail(btn,'Something went wrong. Please try again.')})};
 var EX=[
 {cat:'Cook',title:'One pan lemon chicken and rice',sum:'A recipe carousel with five ingredients and four steps.',act:'Buy the ingredients and cook it Wednesday night.',goal:'Cook 3 new recipes',cur:1,target:3,by:'Sun'},
 {cat:'Train',title:'20 minute dumbbell back workout',sum:'Four exercises, three sets each, with rest times.',act:'Do the full circuit once before Friday.',goal:'Finish 3 workouts',cur:1,target:3,by:'Fri'},
@@ -233,7 +357,7 @@ else if(b.id==='delNo'){ACC.confirm=false;ACC.err='';render()}
 else if(b.id==='delYes'&&window.cloud)delAccount(false);
 else if(b.id==='delRe'&&window.cloud)delAccount(true)});
 window.onAuth=function(u,data,err){if(err){LOADERR=true;U=null;render();return}LOADERR=false;U=u;
-if(u){DEL=false;if(data&&data.saves){S=data}else{S={tab:'saves',saves:[],dec:{},size:4,plan:null,total:0,reps:0,groc:{}};save()}}render();if(u&&GUEST_PENDING){GUEST_PENDING=false;$('sgate').hidden=true;setTimeout(function(){$('saveIt').click()},50)}};
+if(u){DEL=false;if(data&&data.saves){S=data;norm();LASTSYNC=cloudStr()}else{S={tab:'saves',saves:[],dec:{},size:4,plan:null,total:0,reps:0,groc:{}};norm();save()}}render();takeShared();if(u&&GUEST_PENDING){GUEST_PENDING=false;$('sgate').hidden=true;setTimeout(function(){$('saveIt').click()},50)}};
 document.addEventListener('click',function(e){var b=e.target.closest('button');if(!b||!window.cloud)return;
 if(b.id==='signin'||b.dataset.signin){window.cloud.signIn().catch(function(e){var m=(e&&(e.code==='auth/popup-closed-by-user'||e.code==='auth/cancelled-popup-request'))?'':'Sign-in failed. Make sure this site is an authorized domain in Firebase Auth.';['gerr','gerr2'].forEach(function(i){var g=$(i);if(g)g.textContent=m})})}
 else if(b.id==='signout'){try{localStorage.removeItem(KEY)}catch(x){}window.cloud.signOut()}});
@@ -241,15 +365,15 @@ document.addEventListener('click',function(e){var b=e.target.closest('button');i
 if(d.obf!==undefined){var i=OB.focus.indexOf(d.obf);if(i>=0)OB.focus.splice(i,1);else if(OB.focus.length<2)OB.focus.push(d.obf);render()}
 else if(d.obh){OB.hours=+d.obh;render()}
 else if(d.obs){OB.style=d.obs;render()}
-else if(b.id==='obdone'){S.profile={focus:OB.focus.slice(),hours:OB.hours,style:OB.style};save();render()}
-else if(b.id==='editprof'){var pr=S.profile||{};OB={focus:(pr.focus||[]).slice(),hours:pr.hours||null,style:pr.style||null};S.profile=null;render()}
+else if(b.id==='obdone'){var np=JSON.stringify({focus:OB.focus.slice(),hours:OB.hours,style:OB.style});if(typeof PRE!=='undefined'&&PRE&&PRE!==np){S.goals=[];SUGG=null}PRE=null;S.profile={focus:OB.focus.slice(),hours:OB.hours,style:OB.style};save();render()}
+else if(b.id==='editprof'){var pr=S.profile||{};PRE=JSON.stringify({focus:(pr.focus||[]).slice(),hours:pr.hours||null,style:pr.style||null});OB={focus:(pr.focus||[]).slice(),hours:pr.hours||null,style:pr.style||null};S.profile=null;render()}
 else if(b.id==='sugg'){SUGG='loading';render();var tc=themeCount();
-ai('goals',{profile:S.profile,themes:Object.keys(tc).map(function(k){return {theme:k,save_count:tc[k]}}),recent_saves:S.saves.slice(-10).map(function(x){return {title:x.title,theme:x.theme,suggested_action:x.act}}),history:(S.history||[]).slice(-20)})
+ai('goals',{profile:S.profile,minutes_available:goalBudget(),themes:Object.keys(tc).map(function(k){return {theme:k,save_count:tc[k]}}),recent_saves:S.saves.slice(-40).map(function(x){return {title:x.title,theme:x.theme,summary:x.sum,suggested_action:x.act,all_actions:partsOf(x).map(function(p){return p.act})}}),history:(S.history||[]).slice(-20)})
 .then(function(r){SUGG=(r.goals&&r.goals.length)?r.goals:(r.question?{q:r.question}:'error');render()}).catch(function(){SUGG='error';render()})}
 else if(d.ga!==undefined){var g=Array.isArray(SUGG)&&SUGG[+d.ga];S.goals=S.goals||[];if(g&&S.goals.length<3&&!S.goals.some(function(x){return x.title===g.title})){S.goals.push(g);save()}render()}
 else if(d.gs!==undefined){if(Array.isArray(SUGG))SUGG=SUGG.filter(function(x,i){return i!==+d.gs});render()}
 else if(d.grm!==undefined){S.goals.splice(+d.grm,1);save();render()}});
-if(CLOUD_ON){$('main').innerHTML='<p class="mute">Loading...</p>'}else render();
+if(CLOUD_ON){$('main').innerHTML='<p class="mute">Loading...</p>'}else{render();takeShared()}
 </script>
 <script type="module">
 if(window.CLOUD_ON){
@@ -264,7 +388,7 @@ signOut:()=>signOut(auth),
 token:()=>auth.currentUser?auth.currentUser.getIdToken():Promise.resolve(null),
 deleteAll:async()=>{const u=auth.currentUser;await deleteDoc(doc(db,"actionablyApp",u.uid));await deleteUser(u)},
 reauthDelete:async()=>{const u=auth.currentUser;await reauthenticateWithPopup(u,new GoogleAuthProvider());await deleteUser(u)},
-save:(st)=>setDoc(doc(db,"actionablyApp",auth.currentUser.uid),{state:JSON.stringify(st),updated:Date.now()}).catch(()=>{})
+save:(st)=>setDoc(doc(db,"actionablyApp",auth.currentUser.uid),{state:JSON.stringify(st),updated:Date.now()})
 };
 onAuthStateChanged(auth,async(u)=>{let data=null;
 if(u){try{const d=await getDoc(doc(db,"actionablyApp",u.uid));if(d.exists())data=JSON.parse(d.data().state)}catch(e){window.onAuth(null,null,true);return}}
