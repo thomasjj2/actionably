@@ -22,8 +22,11 @@ Instagram has no public API for saved posts, so saves come in as screenshots or 
 
 ```
 index.html                  frontend
-netlify/functions/ai.mjs    AI function (extract, plan, goals)
-package.json                function dependency (firebase-admin)
+netlify/functions/ai.mjs         AI function (extract, plan, goals)
+netlify/functions/account.mjs    Deletes data browsers cannot delete (action records, usage counts)
+js/progress.mjs                  Progress calculations (completion rate, weekly series, trend). Loaded by the app and covered by tests
+tests/progress.test.mjs          Unit tests for the calculations. Run with: npm test
+package.json                function dependency (firebase-admin) and the test script
 netlify.toml                Netlify build config
 firestore.rules             Firestore security rules
 ```
@@ -47,7 +50,7 @@ firestore.rules             Firestore security rules
 | `ANTHROPIC_API_KEY` | Yes | Use a key with a prepaid budget cap |
 | `FIREBASE_API_KEY` | Yes | The Firebase web apiKey. When set, every request must carry a signed in user's token |
 | `SECRETS_SCAN_SMART_DETECTION_OMIT_VALUES` | Yes | Set to the same Firebase web apiKey so Netlify's secrets scan passes |
-| `FIREBASE_SERVICE_ACCOUNT_JSON` | For the daily cap | Service account key for this Firebase project (Project settings, Service accounts, Generate new private key). Paste the raw JSON only. Mark as secret |
+| `FIREBASE_SERVICE_ACCOUNT_JSON` | For the daily cap and for account deletion | Service account key for this Firebase project (Project settings, Service accounts, Generate new private key). Paste the raw JSON only. Mark as secret |
 | `DAILY_TOKEN_LIMIT` | No | Tokens per user per day. Defaults to 100000, and 0 turns the cap off |
 | `UNLIMITED_EMAILS` | No | Comma separated emails that skip the hourly and daily limits |
 | `ANTHROPIC_MODEL` | No | Defaults to `claude-sonnet-5-5` |
@@ -64,3 +67,11 @@ firestore.rules             Firestore security rules
 ## Local demo mode
 
 Open `index.html` with the Firebase config left as PASTE and the app runs with saves kept in the browser's local storage. AI features need the deployed Netlify function.
+
+## Action records
+
+Every plan action ends the week with an outcome: done, partly done, skipped on purpose, moved to next week, or missed. These are stored one document per action under `growth/{uid}/records` in Firestore, and the Growth view in Progress draws its graph from them. The calculations live in `js/progress.mjs` so they are tested and the AI is never asked to produce numbers.
+
+After changing `firestore.rules`, publish the new rules in the Firebase console (Firestore, Rules, Publish). The Rules Playground there can check that you can write your own records and cannot write someone else's.
+
+Deleting an account calls `/api/account` first, which needs `FIREBASE_SERVICE_ACCOUNT_JSON`. Without it, deletion is blocked so records are never left behind.

@@ -46,7 +46,7 @@ nav button[aria-current=true]{color:var(--pri);font-weight:700;box-shadow:inset 
 .btn:disabled{opacity:.5;cursor:default}
 .chip{border:2px solid var(--line);background:var(--card);border-radius:999px;padding:6px 16px;font-weight:700}
 .chip[aria-pressed=true]{border-color:var(--pri);background:var(--pri);color:var(--onpri)}
-.stack{position:relative;height:340px;margin-top:14px;touch-action:pan-y}
+.stack{position:relative;height:clamp(360px,52vh,440px);margin-top:14px;touch-action:pan-y}
 .card{position:absolute;inset:0;background:var(--card);border:1px solid var(--line);border-radius:24px;padding:22px;display:flex;flex-direction:column;gap:10px;box-shadow:0 8px 24px rgba(40,30,120,.12);user-select:none;touch-action:none}
 .card.back{transform:scale(.95) translateY(14px);opacity:.7}
 .card .big{font-family:"Bricolage Grotesque",sans-serif;font-size:26px;font-weight:800;line-height:1.1;letter-spacing:-.02em}
@@ -76,6 +76,29 @@ label{font-weight:700;font-size:14px;display:block;margin-top:12px}
 .gro label{display:flex;gap:10px;align-items:center;font-weight:400;font-size:16px;margin:8px 0}
 .empty{text-align:center;padding:40px 10px}
 a{color:var(--pri);font-weight:700}
+header{gap:12px;padding-bottom:10px}
+header .row{flex-shrink:0}
+h1{min-width:0;white-space:nowrap}
+.btn{white-space:nowrap}
+@media (max-width:400px){h1{font-size:24px}.logo{width:20px;height:23px}}
+nav button{padding:12px 2px 10px;white-space:nowrap}
+@media (max-width:430px){.mq{display:none}}
+.card{overflow:hidden}
+.clamp2,.clamp3,.clamp4{display:-webkit-box;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere}
+.clamp2{-webkit-line-clamp:2;line-clamp:2}
+.clamp3{-webkit-line-clamp:3;line-clamp:3}
+.clamp4{-webkit-line-clamp:4;line-clamp:4}
+.item h3,.item p,.item strong{overflow-wrap:anywhere}
+.dots{display:flex;gap:6px;margin-top:12px}
+.dot{width:32px;height:32px;border-radius:50%;border:2px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--mute)}
+.dot.on{background:var(--ok);border-color:var(--ok);color:var(--onpri)}
+.dot.today{border-color:var(--pri)}
+.info{position:relative;width:26px;height:26px;min-width:26px;border-radius:50%;border:2px solid var(--line);background:transparent;color:var(--pri);font:italic 700 14px/1 "Bricolage Grotesque",serif;display:inline-flex;align-items:center;justify-content:center;padding:0}
+.info:after{content:"";position:absolute;inset:-9px}
+.tip{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-top:10px;font-size:14px}
+.badge{display:inline-block;font-size:12px;font-weight:700;border-radius:8px;padding:2px 8px;background:var(--line);color:var(--ink)}
+.ntin{padding:10px;border-radius:12px;border:2px solid var(--line);background:var(--card);color:var(--ink);font:inherit}
+details summary{min-height:32px}
 </style>
 </head>
 <body>
@@ -111,7 +134,7 @@ var SEED=[
 ];
 var S={tab:'saves',saves:SEED.slice(),dec:{},size:4,plan:null,total:0,reps:0,groc:{}};
 try{var r=localStorage.getItem(KEY);if(r){var o=JSON.parse(r);if(o&&o.saves)S=o}}catch(e){}
-function norm(){S.tab=S.tab||'saves';S.completed=S.completed||[];S.weeks=S.weeks||[];S.dec=S.dec||{};S.groc=S.groc||{};if(S.plan&&!S.wk)S.wk=Date.now()}norm();
+function norm(){S.tab=S.tab||'saves';S.completed=S.completed||[];S.rq=S.rq||[];S.weeks=S.weeks||[];S.dec=S.dec||{};S.groc=S.groc||{};if(S.plan&&!S.wk)S.wk=Date.now()}norm();
 var LASTSYNC='',SYNCERR=false;
 function cloudStr(){var c={};for(var k in S)if(k!=='tab')c[k]=S[k];return JSON.stringify(c)}
 function syncBar(on){SYNCERR=on;var e=$('syncbar');if(!e)return;e.hidden=!on;e.textContent=on?'Could not save to your account. Your changes are kept on this device and will retry.':''}
@@ -126,12 +149,12 @@ var TABS=[['saves','Saves'],['review','Review'],['plan','Plan'],['progress','Pro
 var PT='overview',RM=null,PRE=null,EDIT=null,EDITD=null,EDITERR='',CATS=['Cook','Train','Buy','Learn','Try','Mindset'];
 function partsOf(s){if(Array.isArray(s.parts)&&s.parts.length)return s.parts;return [{act:s.act,min:s.min,sum:s.sum}]}
 function ago(t){if(!t)return '';var d=new Date(t);return d.toLocaleDateString(undefined,{month:'short',day:'numeric'})}
-function nav(){var T=TABS.slice();if(U)T.push(['account','My Account']);$('nav').innerHTML=T.map(function(t){return '<button data-t="'+t[0]+'" aria-current="'+(S.tab===t[0])+'">'+t[1]+'</button>'}).join('')}
-function go(t,keep){S.tab=t;EDIT=null;EDITD=null;if(!keep){FLASH='';JUST=null}save();render();window.scrollTo(0,0)}
+function nav(){var T=TABS.slice();if(U)T.push(['account','<span class="mq">My </span>Account']);$('nav').innerHTML=T.map(function(t){return '<button data-t="'+t[0]+'" aria-current="'+(S.tab===t[0])+'">'+t[1]+'</button>'}).join('')}
+function go(t,keep){S.tab=t;EDIT=null;EDITD=null;if(!keep){FLASH='';JUST=null}if(t==='progress')RECLOAD=false;save();render();window.scrollTo(0,0)}
 function themeCount(){var c={};S.saves.forEach(function(s){c[s.theme]=(c[s.theme]||0)+1});return c}
 function picks(){return S.saves.filter(function(s){return S.dec[s.id]==='do'})}
 function queue(){return S.saves.filter(function(s){return !S.dec[s.id]||S.dec[s.id]==='later'}).sort(function(a,b){return (S.dec[a.id]==='later'?1:0)-(S.dec[b.id]==='later'?1:0)||b.id-a.id})}
-function render(){nav();var m=$('main');if(CLOUD_ON&&!U){$('nav').innerHTML='';m.innerHTML=vPreview();$('addBtn').hidden=false;$('inBtn').hidden=false;return}if(!S.profile){$('nav').innerHTML='';m.innerHTML=vOnb();$('addBtn').hidden=true;$('inBtn').hidden=true;return}$('addBtn').hidden=false;$('inBtn').hidden=true;
+function render(){nav();var m=$('main');if(CLOUD_ON&&!U){$('nav').innerHTML='';m.innerHTML=vPreview();$('addBtn').hidden=true;$('inBtn').hidden=false;return}if(!S.profile){$('nav').innerHTML='';m.innerHTML=vOnb();$('addBtn').hidden=true;$('inBtn').hidden=true;return}$('addBtn').hidden=false;$('inBtn').hidden=true;
 if(S.tab==='saves')m.innerHTML=vSaves();
 else if(S.tab==='review'){if(weekOver())closeWeek();m.innerHTML=vReview(),bindReview()}
 else if(S.tab==='plan')m.innerHTML=vPlan();
@@ -163,7 +186,7 @@ if(!cap)return h+'<div class="empty"><h3>This week is full</h3><p class="mute" s
 if(n>=cap||!q.length){return h+'<div class="empty"><h3>'+n+' save'+(n===1?'':'s')+' picked</h3><p class="mute" style="margin:6px 0 16px">'+(n?'Ready to build your week.':'Nothing picked. Reset to review again.')+'</p>'+(n?'<button class="btn" id="build">'+((S.plan&&S.plan.length)?'Add to this week':'Build my plan')+'</button> ':'')+'<button class="btn ghost" id="resetRev">Start over</button></div>'+(n?vGoals():'')}
 h+='<p class="mute">'+n+' of '+cap+' saves picked. New saves come first.</p><div class="stack" id="stack">';
 if(q[1])h+=card(q[1],true);h+=card(q[0],false)+'</div><div class="acts"><button class="btn ghost" data-d="drop">Drop</button><button class="btn ghost" data-d="later">Later</button><button class="btn" data-d="do">Do it</button></div>';return h}
-function card(s,back){return '<div class="card'+(back?' back':'')+'" '+(back?'aria-hidden="true"':'id="top"')+'><span class="stampL">DROP</span><span class="stampR">DO IT</span><div class="row sp"><span class="tag '+s.cat+'">'+s.cat+'</span><span class="mute">'+partsOf(s).length+' action'+(partsOf(s).length>1?'s':'')+' · '+s.min+' min</span></div><div class="big">'+esc(s.title)+'</div><p class="mute">'+esc(s.sum)+'</p><p><strong>First action:</strong> '+esc(s.act)+'</p>'+(partsOf(s).length>1?'<p class="mute">+ '+(partsOf(s).length-1)+' more action'+(partsOf(s).length>2?'s':'')+', spread across your week</p>':'')+(s.miss?'<p class="warn">'+esc(s.miss)+'</p>':'')+'</div>'}
+function card(s,back){return '<div class="card'+(back?' back':'')+'" '+(back?'aria-hidden="true"':'id="top"')+'><span class="stampL">DROP</span><span class="stampR">DO IT</span><div class="row sp"><span class="tag '+s.cat+'">'+s.cat+'</span><span class="mute">'+partsOf(s).length+' action'+(partsOf(s).length>1?'s':'')+' · '+s.min+' min</span></div><div class="big clamp3">'+esc(s.title)+'</div><p class="mute clamp4">'+esc(s.sum)+'</p><p class="clamp2"><strong>First action:</strong> '+esc(s.act)+'</p>'+(partsOf(s).length>1?'<p class="mute">+ '+(partsOf(s).length-1)+' more action'+(partsOf(s).length>2?'s':'')+', spread across your week</p>':'')+(s.miss?'<p class="warn clamp2">'+esc(s.miss)+'</p>':'')+'</div>'}
 function decide(d){var q=queue();if(!q.length)return;S.dec[q[0].id]=d;save();render()}
 function bindReview(){var t=$('top');if(!t)return;var x0=null,dx=0;
 t.addEventListener('pointerdown',function(e){x0=e.clientX;t.setPointerCapture(e.pointerId)});
@@ -172,22 +195,28 @@ t.addEventListener('pointerup',function(){if(x0===null)return;var d=dx;x0=null;d
 var DAYS=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],SUGG=null,OB={focus:[],hours:null,style:null};
 function goalItems(){return (S.goals||[]).map(function(g,i){var d=String(g.deadline||'Fri').slice(0,3);if(DAYS.indexOf(d)<0)d='Fri';return {id:'gx'+(S.gseq=(S.gseq||0)+1),goal:true,t:String(g.title),metric:String(g.metric||''),step:String(g.why||''),min:+g.est_minutes||30,target:+g.target||5,cur:0,day:d,done:false}})}
 function pushHistory(){S.history=(S.history||[]).concat((S.plan||[]).map(function(x){return {goal_title:x.t,target:x.goal?x.target:1,completed:x.goal?(x.cur||0):(x.done?1:0)}})).slice(-20)}
-function weekStats(plan){var d=0,md=0,mp=0,di=[],oi=[];plan.forEach(function(x){var dn=isDone(x),m=+x.min||0,nm=x.goal?x.t:(x.step||x.t);mp+=m;if(dn){d++;md+=m;di.push(nm)}else{if(x.goal&&x.cur)md+=Math.round(m*Math.min(1,x.cur/x.target));oi.push(nm)}});return {planned:plan.length,done:d,minPlanned:mp,minDone:md,doneItems:di.slice(0,12),openItems:oi.slice(0,12)}}
-function archiveWeek(){if(!S.plan||!S.plan.length)return null;var w=weekStats(S.plan);w.start=S.wk||Date.now();w.end=Date.now();w.size=S.size;S.weeks=(S.weeks||[]).concat([w]).slice(-26);return w}
+function weekStats(plan){var d=0,pa=0,sk=0,mv=0,md=0,mp=0,di=[],oi=[],pi=[];plan.forEach(function(x){var dn=isDone(x),m=+x.min||0,nm=x.goal?x.t:(x.step||x.t);mp+=m;
+if(dn){d++;md+=m;di.push(nm)}
+else if(x.out==='skipped'){sk++}
+else if(x.out==='rescheduled'){mv++}
+else if(x.out==='partial'||(x.goal&&(x.cur||0)>0)){pa++;pi.push(nm);md+=x.goal?Math.round(m*Math.min(1,x.cur/x.target)):Math.round(m*.5)}
+else{oi.push(nm)}});
+return {planned:plan.length,done:d,partial:pa,skipped:sk,moved:mv,minPlanned:mp,minDone:md,doneItems:di.slice(0,12),openItems:oi.slice(0,12),partialItems:pi.slice(0,12)}}
+function archiveWeek(){if(!S.plan||!S.plan.length)return null;finalizeRecs();var w=weekStats(S.plan);w.start=S.wk||Date.now();w.end=Date.now();w.size=S.size;S.weeks=(S.weeks||[]).concat([w]).slice(-26);return w}
 function weekOver(){return !!(S.plan&&S.plan.length&&Date.now()-(S.wk||Date.now())>=7*864e5)}
-function closeWeek(){if(!S.plan)return;pushHistory();var w=archiveWeek();if(w){var L=[2,4,6],i=L.indexOf(S.size);if(i<0)i=1;var r=w.planned?w.done/w.planned:0,ni=i;if(r>=1)ni=Math.min(2,i+1);else if(r<.5)ni=Math.max(0,i-1);S.size=L[ni];w.nextSize=S.size;S.sizeNote='Last week you finished '+w.done+' of '+w.planned+' actions. '+(ni>i?'This week goes up to '+S.size+' saves.':ni<i?'This week steps down to '+S.size+' saves.':'This week stays at '+S.size+' saves.')}S.plan=null;S.wk=null;S.groc={};S.adjN=0;S.adj=null;S.planNote='';save()}
+function closeWeek(){if(!S.plan)return;pushHistory();var w=archiveWeek();if(w){var L=[2,4,6],i=L.indexOf(S.size);if(i<0)i=1;var den=w.planned-(w.skipped||0)-(w.moved||0),r=den>0?(w.done+.5*(w.partial||0))/den:.75,ni=i;if(r>=1)ni=Math.min(2,i+1);else if(r<.5)ni=Math.max(0,i-1);S.size=L[ni];w.nextSize=S.size;S.sizeNote='Last week you finished '+w.done+' of '+w.planned+' actions. '+(ni>i?'This week goes up to '+S.size+' saves.':ni<i?'This week steps down to '+S.size+' saves.':'This week stays at '+S.size+' saves.')}S.plan=null;S.wk=null;S.groc={};S.adjN=0;S.adj=null;S.planNote='';save()}
 function finish(it){if(S.plan){pushHistory();archiveWeek()}S.plan=it;S.wk=Date.now();S.groc={};S.goals=[];S.sizeNote='';S.adjN=0;S.adj=null;SUGG=null;save();go('plan',true)}
 var FOCUSCAT={'Money / business':['Buy','Learn','Mindset'],'Fitness':['Train','Cook'],'Career':['Learn','Mindset'],'Habits and discipline':['Mindset','Train'],'Learning':['Learn'],'Relationships':['Try','Mindset']};
 function fitScore(s){var f=(S.profile&&S.profile.focus)||[],sc=0;f.forEach(function(k){if((FOCUSCAT[k]||[]).indexOf(s.cat)>=0)sc+=2;var w=k.toLowerCase().split(/[^a-z]+/).filter(function(x){return x.length>3});var hay=((s.theme||'')+' '+(s.title||'')).toLowerCase();w.forEach(function(x){if(hay.indexOf(x)>=0)sc+=1})});return sc}
 function budgetMins(){return Math.round(((S.profile&&S.profile.hours)||3)*60)}
 function picksMin(){return picks().slice(0,S.size).reduce(function(a,s){return a+(+partsOf(s)[0].min||s.min||15)},0)}
 function goalBudget(){var b=budgetMins();return Math.max(Math.round(b*0.3),b-picksMin())}
-var MAXOPEN=14,ADDCAP=3,ADJMAX=2,ADJCHG=3,FLASH='',JUST=null;
+var MAXOPEN=14,ADDCAP=3,ADJMAX=2,ADJCHG=3,FLASH='',JUST=null,STIP=false,NT=null,REC=null,RECLOAD=false,RECERR=false,FLUSHING=false;
 function saveById(id){return S.saves.filter(function(x){return x.id===id})[0]}
 function sidOf(x){return +String(x.id).split('_')[0].slice(1)}
 function planSaveIds(){var o=[];(S.plan||[]).forEach(function(x){if(x.goal)return;var n=sidOf(x);if(n&&o.indexOf(n)<0)o.push(n)});return o}
 function planMins(){return (S.plan||[]).reduce(function(a,x){return a+(+x.min||0)},0)}
-function openItems(){return (S.plan||[]).filter(function(x){return !isDone(x)})}
+function openItems(){return (S.plan||[]).filter(function(x){return !isSet(x)})}
 function weekOpen(){return !!(S.plan&&S.plan.length&&!weekOver())}
 function capLeft(){return (S.plan&&S.plan.length)?Math.max(0,S.size-planSaveIds().length):S.size}
 function windowDays(){var end=(S.wk||Date.now())+7*864e5,o=[],d=new Date();d.setHours(0,0,0,0);while(d.getTime()<end&&o.length<7){o.push(DAYS[(d.getDay()+6)%7]);d.setDate(d.getDate()+1)}return o.length?o:[DAYS[(new Date().getDay()+6)%7]]}
@@ -195,15 +224,23 @@ function slotsFor(style){var w=windowDays();return style==='weekly'?(w.length>3?
 function interleave(items){var g={},rk=[];items.forEach(function(x){var k=sidOf(x);(g[k]=g[k]||[]).push(x)});
 Object.keys(g).forEach(function(k){g[k].sort(function(a,b){return (+a.id.split('_')[1])-(+b.id.split('_')[1])}).forEach(function(x,i){rk.push({x:x,r:i,f:itemFit(x),s:+k})})});
 rk.sort(function(a,b){return a.r-b.r||b.f-a.f||a.s-b.s});return rk.map(function(o){return o.x})}
-function place(items,existing,style){var sl=slotsFor(style),n=sl.length,cnt=sl.map(function(){return 0}),load=sl.map(function(){return 0}),dsv=sl.map(function(){return {}}),last={};
-var ex=existing.filter(function(x){return !x.goal&&!isDone(x)}),all=ex.concat(items),sv={},tm=0;
-all.forEach(function(x){sv[sidOf(x)]=1;tm+=(+x.min||0)});
-var per=Math.max(Object.keys(sv).length>1?2:1,Math.ceil(all.length/n)),cap=Math.max(45,Math.round(1.5*tm/n));
-ex.forEach(function(x){var i=sl.indexOf(x.day);if(i<0)return;var k=sidOf(x);cnt[i]++;load[i]+=(+x.min||0);dsv[i][k]=1;if(!(k in last)||last[k]<i)last[k]=i});
-items.forEach(function(it){var k=sidOf(it),m=+it.min||0,lo=(k in last)?last[k]+1:0,best=-1,i;if(lo>n-1)lo=n-1;
-for(i=lo;i<n;i++){if(cnt[i]<per&&!dsv[i][k]&&(cnt[i]===0||load[i]+m<=cap)){best=i;break}}
-if(best<0){for(i=lo;i<n;i++){if(best<0||load[i]<load[best])best=i}}
-it.day=sl[best];cnt[best]++;load[best]+=m;dsv[best][k]=1;last[k]=best})}
+function chainGap(total,n){return total<2?1:Math.max(1,Math.min(2,Math.floor((n-1)/(total-1))))}
+function place(items,existing,style){var sl=slotsFor(style),n=sl.length,cnt=sl.map(function(){return 0}),load=sl.map(function(){return 0}),lastI={},exN={};
+var ex=existing.filter(function(x){return !x.goal&&!isSet(x)}),all=ex.concat(items),sv={};
+all.forEach(function(x){sv[sidOf(x)]=1});
+var per=Math.max(Object.keys(sv).length>1?2:1,Math.ceil(all.length/n)),tm=all.reduce(function(a,x){return a+(+x.min||0)},0),cap=Math.max(45,Math.round(1.5*tm/n));
+ex.forEach(function(x){var i=sl.indexOf(x.day);if(i<0)return;var k=sidOf(x);cnt[i]++;load[i]+=(+x.min||0);exN[k]=(exN[k]||0)+1;if(!(k in lastI)||lastI[k]<i)lastI[k]=i});
+var g={},keys=[];items.forEach(function(it){var k=sidOf(it);if(!g[k]){g[k]=[];keys.push(k)}g[k].push(it)});
+keys.forEach(function(k){g[k].sort(function(a,b){return (+a.id.split('_')[1])-(+b.id.split('_')[1])})});
+keys.sort(function(a,b){return g[b].length-g[a].length||itemFit(g[b][0])-itemFit(g[a][0])||a-b});
+function pen(i,m){return cnt[i]>=per?100:cnt[i]*10+((cnt[i]>0&&load[i]+m>cap)?15:0)}
+keys.forEach(function(k){var arr=g[k],m=arr.length,gp=chainGap(m+(exN[k]||0),n),lo=(k in lastI)?Math.min(lastI[k]+gp,n-1):0,hi=n-1-(m-1)*gp;
+if(hi<lo&&gp>1){gp=1;hi=n-1-(m-1)}
+if(hi<lo)hi=lo;
+var best=lo,bp=1e9,a,b,pp;
+for(a=lo;a<=hi;a++){pp=a*.01;for(b=0;b<m;b++)pp+=pen(Math.min(n-1,a+b*gp),+arr[b].min||0);if(pp<bp-1e-9){bp=pp;best=a}}
+arr.forEach(function(it,b){var i=Math.min(n-1,best+b*gp);it.day=sl[i];cnt[i]++;load[i]+=(+it.min||0)});
+lastI[k]=Math.min(n-1,best+(m-1)*gp);exN[k]=(exN[k]||0)+m})}
 function dayIdx(it){var b=(new Date(S.wk||Date.now()).getDay()+6)%7,i=DAYS.indexOf(it.day);return i<0?9:(i-b+7)%7}
 function itemFit(x){if(x.goal)return 0;var s=saveById(sidOf(x));return s?fitScore(s):0}
 function mkItem(s,ps,k){var p=ps[k];return {id:'p'+s.id+'_'+k,t:s.title,step:p.act||s.act,note:ps.length>1?(p.sum||''):'',part:ps.length>1?('Action '+(k+1)+' of '+ps.length):'',min:+p.min||s.min,ing:(k===0)?(s.ing||null):null,link:s.link||null,miss:null,done:false}}
@@ -211,7 +248,7 @@ function leftParts(s){var ps=partsOf(s).slice(0,6),have={},ks=[];(S.plan||[]).fo
 function hrsTxt(){var h=(S.profile&&S.profile.hours)||3;return h+' hour'+(h>1?'s':'')}
 function build(){var bt=$('build');if(bt){bt.disabled=true;bt.textContent='Building your week...'}
 var merge=weekOpen(),cap=capLeft(),gs=goalItems();
-if(merge)gs=gs.filter(function(g){return !S.plan.some(function(x){return x.goal&&x.t===g.t&&!isDone(x)})});
+if(merge)gs=gs.filter(function(g){return !S.plan.some(function(x){return x.goal&&x.t===g.t&&!isSet(x)})});
 var gm=gs.reduce(function(a,g){return a+g.min},0),budget=Math.max(20,budgetMins()-gm-(merge?planMins():0));
 var pk=picks().map(function(x,i){return {s:x,i:i,f:fitScore(x)}}).sort(function(a,b){return b.f-a.f||a.i-b.i}).slice(0,Math.max(1,cap)).map(function(x){return x.s});
 var cand=[],used=0,maxK=0;
@@ -242,8 +279,8 @@ function vJust(){var x=JUST&&saveById(JUST),h=FLASH?'<div class="item"><strong>'
 if(x&&weekOpen()&&leftParts(x).ks.length&&planSaveIds().indexOf(x.id)<0){var n=openItems().length;h+='<div class="item"><strong>Add "'+esc(x.title)+'" to this week?</strong><p class="mute">Your plan has '+n+' open action'+(n===1?'':'s')+'. Up to '+ADDCAP+' actions from this save are added, within your time.</p><div class="row" style="margin-top:10px"><button class="btn sm" data-aw="'+x.id+'">Add to this week</button><button class="btn ghost sm" id="awno">Not now</button></div></div>'}
 return h}
 function syncPlan(x){if(!S.plan)return;var ps=partsOf(x).slice(0,6),pre='p'+x.id+'_';
-S.plan=S.plan.filter(function(y){if(y.goal||isDone(y)||y.id.indexOf(pre)!==0)return true;return (+y.id.split('_')[1])<ps.length});
-S.plan.forEach(function(y){if(y.goal||isDone(y)||y.id.indexOf(pre)!==0)return;var k=+y.id.split('_')[1],p=ps[k];y.t=x.title;y.step=p.act||x.act;y.min=+p.min||x.min;y.note=ps.length>1?(p.sum||''):'';y.part=ps.length>1?('Action '+(k+1)+' of '+ps.length):'';y.ing=(k===0)?(x.ing||null):null})}
+S.plan=S.plan.filter(function(y){if(y.goal||isSet(y)||y.id.indexOf(pre)!==0)return true;return (+y.id.split('_')[1])<ps.length});
+S.plan.forEach(function(y){if(y.goal||isSet(y)||y.id.indexOf(pre)!==0)return;var k=+y.id.split('_')[1],p=ps[k];y.t=x.title;y.step=p.act||x.act;y.min=+p.min||x.min;y.note=ps.length>1?(p.sum||''):'';y.part=ps.length>1?('Action '+(k+1)+' of '+ps.length):'';y.ing=(k===0)?(x.ing||null):null})}
 function proposeAdjust(){if(!S.plan||!S.plan.length||weekOver())return null;
 if((S.adjN||0)>=ADJMAX)return {blocked:'This week was already adjusted '+ADJMAX+' times. Your new focus and time start next week.'};
 var bm=budgetMins(),t=planMins(),open=openItems(),rm=[],rmT=[],add=[],i;
@@ -262,9 +299,9 @@ if(a.add.length)l.push('Add '+a.add.length+' more action'+(a.add.length>1?'s':''
 if(a.room)l.push('You have about '+a.room+' minutes of room. Add a save to use it.');
 return '<div class="item"><strong>You changed your focus and time.</strong><p class="mute">Update this week\'s plan? At most '+ADJCHG+' actions are removed or added, and finished actions are never touched.</p><ol class="al">'+l.map(function(x){return '<li>'+x+'</li>'}).join('')+'</ol><div class="row" style="margin-top:10px"><button class="btn sm" id="adjyes">Update my plan</button><button class="btn ghost sm" id="adjno">Keep my plan</button></div></div>'}
 function applyAdjust(){var a=S.adj;if(!a||!S.plan||a.blocked){S.adj=null;save();render();return}
-var rm=a.rm||[];S.plan=S.plan.filter(function(x){return isDone(x)||rm.indexOf(x.id)<0});
+var rm=a.rm||[];S.plan=S.plan.filter(function(x){return isSet(x)||rm.indexOf(x.id)<0});
 (a.add||[]).forEach(function(x){if(saveById(sidOf(x))&&!S.plan.some(function(y){return y.id===x.id}))S.plan.push(x)});
-var op=S.plan.filter(function(x){return !x.goal&&!isDone(x)});
+var op=S.plan.filter(function(x){return !x.goal&&!isSet(x)});
 place(interleave(op),[],(S.profile&&S.profile.style)||'daily');
 S.adjN=(S.adjN||0)+1;S.adj=null;FLASH='Plan updated.';save();render()}
 function profLine(){var p=S.profile||{},h=p.hours;return (p.focus||[]).join(', ')+'. '+(h===1?'About 1 hour':h===5?'5+ hours':h+' hours')+' a week. '+(p.style==='weekly'?'One bigger weekly push.':'Small daily steps.')}
@@ -286,46 +323,123 @@ h+='</div><h3>How do you like to work?</h3><div class="chips">';
 [['daily','Small daily steps'],['weekly','One bigger weekly push']].forEach(function(o){h+=ch(OB.style===o[0],'data-obs',o[0],o[1])});
 return h+'</div><button class="btn" id="obdone" style="margin-top:14px"'+((OB.focus.length&&OB.hours&&OB.style)?'':' disabled')+'>'+(PRE?'Save changes':'Start my week')+'</button>'+(PRE?' <button class="btn ghost" id="obcancel" style="margin-top:14px">Cancel</button>':'')}
 function vPlan(){if(!S.plan)return '<div class="empty"><h2>No plan yet</h2><p class="mute" style="margin:6px 0 16px">Pick saves in your weekly review first.</p><button class="btn" data-t="review">Start review</button></div>';
-var left=S.plan.filter(function(x){return !isDone(x)});
-if(!left.length)return '<div class="empty"><h2>All done this week</h2><p class="mute" style="margin:6px 0 16px">Every action is finished. Add another save to this week, or start next week early.</p><div class="row" style="justify-content:center;flex-wrap:wrap"><button class="btn" data-t="saves">Add more to this week</button><button class="btn ghost" id="nextwk">Start next week</button><button class="btn ghost" data-t="progress" data-pt="done">Completed actions</button></div></div>';
-var h='<h2>This week</h2><p class="mute">'+left.length+' action'+(left.length>1?'s':'')+' left. Tap I did it and it moves to Completed Actions in Progress.</p>'+(planMins()?'<p class="mute">About '+planMins()+' min planned of your '+(((S.profile&&S.profile.hours)||3))+' hour'+(((S.profile&&S.profile.hours)||3)>1?'s':'')+' a week.</p>':'');
+var left=S.plan.filter(function(x){return !isSet(x)}),aside=S.plan.filter(function(x){return !isDone(x)&&!!x.out});
+if(!left.length)return '<div class="empty"><h2>'+(aside.length?'All handled this week':'All done this week')+'</h2><p class="mute" style="margin:6px 0 16px">'+(aside.length?'Everything is done or set aside. ':'Every action is finished. ')+'Add another save to this week, or start next week early.</p><div class="row" style="justify-content:center;flex-wrap:wrap"><button class="btn" data-t="saves">Add more to this week</button><button class="btn ghost" id="nextwk">Start next week</button><button class="btn ghost" data-t="progress" data-pt="done">Completed actions</button></div></div>'+vAside(aside);
+var h='<h2>This week</h2>'+vStreakMini()+'<p class="mute" style="margin-top:6px">'+left.length+' action'+(left.length>1?'s':'')+' left. Tap I did it and it moves to Completed Actions in Progress.</p>'+(planMins()?'<p class="mute">About '+planMins()+' min planned of your '+(((S.profile&&S.profile.hours)||3))+' hour'+(((S.profile&&S.profile.hours)||3)>1?'s':'')+' a week.</p>':'');
 h+=(FLASH?'<p class="mute" role="status"><strong>'+esc(FLASH)+'</strong></p>':'')+(S.planNote?'<p class="mute">'+esc(S.planNote)+'</p>':'')+vAdj();
 if(weekOver())h+='<div class="item"><strong>This week is over.</strong><p class="mute">Start next week to see your summary and pick new saves.</p><button class="btn sm" id="nextwk" style="margin-top:8px">Start next week</button></div>';
 left.slice().sort(function(a,b){return dayIdx(a)-dayIdx(b)}).forEach(function(it){h+='<div class="item"><div class="row sp"><span class="day">'+it.day+'</span><span class="mute">'+(it.part?esc(it.part)+' · ':'')+it.min+' min</span></div>';
 if(it.goal)h+='<span class="from">Goal</span><h3 style="margin-top:6px">'+esc(it.t)+'</h3>'+(it.step?'<p class="mute">'+esc(it.step)+'</p>':'');
 else h+='<span class="from">From save: '+esc(it.t)+'</span><h3 style="margin-top:6px">'+esc(it.step)+'</h3>'+(it.note?'<p class="mute">'+esc(it.note)+'</p>':'');
 h+=(it.miss?'<p class="warn">'+esc(it.miss)+'</p>':'');
-if(it.goal){var c=it.cur||0;h+='<div class="row sp" style="margin-top:10px"><span><strong>'+c+' / '+it.target+'</strong> <span class="mute">'+esc(it.metric)+'</span></span><button class="btn sm" data-rep="'+it.id+'">+1 done</button></div><div class="bar"><i style="width:'+Math.min(100,c/it.target*100)+'%"></i></div>'}
-else h+='<div style="margin-top:10px"><button class="stamp" data-done="'+it.id+'" aria-pressed="false">I did it</button></div>';
-h+='</div>'});
+if(it.goal){var c=it.cur||0;h+='<div class="row sp" style="margin-top:10px"><span><strong>'+c+' / '+it.target+'</strong> <span class="mute">'+esc(it.metric)+'</span></span><button class="btn sm" data-rep="'+it.id+'">+1 done</button></div><div class="bar"><i style="width:'+Math.min(100,c/it.target*100)+'%"></i></div><div style="margin-top:10px"><button class="btn ghost sm" data-nt="'+it.id+'">Not today</button></div>'}
+else h+='<div class="row" style="margin-top:10px;gap:8px;flex-wrap:wrap"><button class="stamp" data-done="'+it.id+'" aria-pressed="false">I did it</button><button class="btn ghost sm" data-nt="'+it.id+'">Not today</button></div>';
+h+=(NT===it.id?vNT(it):'')+'</div>'});
+h+=vAside(aside);
 var ing=[];left.forEach(function(it){(it.ing||[]).forEach(function(g){if(ing.indexOf(g)<0)ing.push(g)})});
 if(ing.length){h+='<div class="item gro"><h3>Grocery list</h3>';ing.forEach(function(g){h+='<label><input type="checkbox" data-g="'+esc(g)+'"'+(S.groc[g]?' checked':'')+'> '+esc(g)+'</label>'});h+='</div>'}
 return h}
 function isDone(it){return it.goal?(it.cur||0)>=it.target:it.done}
+function isSet(it){return isDone(it)||!!it.out}
 function pct(a,b){return b?Math.round(a/b*100):0}
 function dfmt(t){return new Date(t).toLocaleDateString(undefined,{month:'short',day:'numeric'})}
-function streak(){var n=0,W=S.weeks||[];for(var i=W.length-1;i>=0;i--){if(W[i].planned&&W[i].done/W[i].planned>=.5)n++;else break}return n}
-function wCard(w,title){var p=pct(w.done,w.planned);return '<div class="item"><div class="row sp"><h3>'+esc(title)+'</h3><span class="mute">'+p+'%</span></div><p><strong>'+w.done+' of '+w.planned+'</strong> actions done</p><div class="bar"><i style="width:'+p+'%"></i></div><p class="mute">'+w.minDone+' of '+w.minPlanned+' min</p>'
+function wkKey(t){var d=new Date(t);d.setHours(0,0,0,0);d.setDate(d.getDate()-((d.getDay()+6)%7));return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2)}
+function wkPrev(k){var p=k.split('-'),d=new Date(+p[0],+p[1]-1,+p[2]-7);return wkKey(d.getTime())}
+function wNeed(p){return p?Math.max(1,Math.min(Math.ceil(p/2),3)):3}
+function weekDone(k){return (S.completed||[]).filter(function(c){return wkKey(c.at)===k}).length}
+function weekPlanned(k){var n=0;(S.weeks||[]).forEach(function(w){if(wkKey(w.start||Date.now())===k)n+=Math.max(0,(w.planned||0)-(w.skipped||0)-(w.moved||0))});if(S.plan&&S.plan.length&&S.wk&&wkKey(S.wk)<=k)n+=S.plan.filter(function(x){return x.out!=='skipped'&&x.out!=='rescheduled'}).length;return n}
+function streakSync(){S.sw=S.sw||{};
+if(!S.swInit){S.swInit=1;var ag={};(S.weeks||[]).forEach(function(w){var k=wkKey(w.start||Date.now());ag[k]=ag[k]||{d:0,p:0};ag[k].d+=w.done||0;ag[k].p+=Math.max(0,(w.planned||0)-(w.skipped||0)-(w.moved||0))});Object.keys(ag).forEach(function(k){if(k!==wkKey(Date.now())&&ag[k].d>=wNeed(ag[k].p))S.sw[k]=1})}
+var cur=wkKey(Date.now());if(weekDone(cur)>=wNeed(weekPlanned(cur)))S.sw[cur]=1;else delete S.sw[cur]}
+function streakInfo(){streakSync();var cur=wkKey(Date.now()),need=wNeed(weekPlanned(cur)),done=weekDone(cur),ok=!!S.sw[cur],n=ok?1:0,k=wkPrev(cur),used=false,i;
+for(i=0;i<520;i++){if(S.sw[k]){n++;k=wkPrev(k)}else if(!used&&S.sw[wkPrev(k)]){used=true;k=wkPrev(k)}else break}
+if(n>(S.best||0))S.best=n;return {n:n,cur:ok,need:need,done:done,graced:used,best:S.best||n}}
+var OUTL={done:'Done',partial:'Partly done',skipped:'Skipped on purpose',rescheduled:'Moved to next week',missed:'Missed',pending:'Open'};
+window.onProgressReady=function(){if(S.tab==='progress'&&PT==='growth'&&(U||!CLOUD_ON))render()};
+function evAdd(it,o,x){it.ev=it.ev||[];var e={o:o,at:Date.now()},k;if(x)for(k in x)e[k]=x[k];it.ev.push(e);if(it.ev.length>30)it.ev=it.ev.slice(-30)}
+function schedMs(it){var d=new Date(S.wk||Date.now());d.setHours(12,0,0,0);d.setDate(d.getDate()+Math.min(6,dayIdx(it)));return d.getTime()}
+function recOf(it,closing){var c=(S.completed||[]).filter(function(x){return x.pid===it.id&&(x.wk||0)===(S.wk||0)})[0];return window.Progress.buildRecord(it,{wk:S.wk||0,sched:schedMs(it),closing:!!closing,now:Date.now(),doneAt:c?c.at:0})}
+function recQueue(it,closing,noFlush){if(!window.Progress||!S.plan)return;if(!it.rc)it.rc=Date.now();
+if(closing&&!isSet(it)&&!(it.ev||[]).some(function(e){return e.o==='missed'||e.o==='partial'}))evAdd(it,(it.goal&&(it.cur||0)>0)?'partial':'missed');
+var r=recOf(it,closing);r.v=(S.rv=(S.rv||0)+1);S.rq=(S.rq||[]).filter(function(x){return x.id!==r.id}).concat([r]).slice(-150);
+if(!S.recFrom)S.recFrom=Date.now();
+if(!noFlush){save();flushRecs()}}
+function finalizeRecs(){(S.plan||[]).forEach(function(it){recQueue(it,true,true)});flushRecs()}
+function flushRecs(){if(!window.cloud||!window.cloud.putRec||!U||DEL||FLUSHING)return;var q=(S.rq||[]).slice();if(!q.length)return;FLUSHING=true;
+(function next(i){if(i>=q.length){FLUSHING=false;save();return}
+window.cloud.putRec(q[i]).then(function(){S.rq=(S.rq||[]).filter(function(x){return !(x.id===q[i].id&&x.v===q[i].v)});next(i+1)}).catch(function(){FLUSHING=false})})(0)}
+function outcomeSet(id,kind){var it=(S.plan||[]).filter(function(x){return x.id===id})[0];if(!it||isDone(it))return;
+var n=$('ntNote'),note=n?n.value.trim().slice(0,140):'',sel=$('ntDay'),to=sel?sel.value:'';
+if(kind==='move'){if(!to)return;if(to==='__next'){it.out='rescheduled';evAdd(it,'rescheduled',{to:'next week'});FLASH='Moved to next week. You can add it back from its save then.'}else{var f=it.day;it.day=to;evAdd(it,'moved',{from:f,to:to});FLASH='Moved to '+to+'.'}}
+else if(kind==='partial'&&!it.goal){it.out='partial';evAdd(it,'partial');FLASH='Marked partly done. It counts as half.'}
+else if(kind==='skipped'){it.out='skipped';evAdd(it,'skipped');FLASH='Skipped on purpose. It will not count against you.'}
+else return;
+if(note)it.on=note;NT=null;recQueue(it,false);save();render()}
+function outcomeUndo(id){var it=(S.plan||[]).filter(function(x){return x.id===id})[0];if(!it||!it.out)return;delete it.out;delete it.on;evAdd(it,'undone');FLASH='Put back in your plan.';recQueue(it,false);save();render()}
+function vNT(it){var o='';windowDays().filter(function(d){return d!==it.day}).forEach(function(d){o+='<option value="'+d+'">'+d+'</option>'});o+='<option value="__next">Next week</option>';
+return '<div class="tip"><label class="mute" for="ntDay">Move to</label> <select id="ntDay" class="ntin" style="margin-left:6px;padding:6px 10px">'+o+'</select><input id="ntNote" class="ntin" type="text" maxlength="140" placeholder="Optional note" aria-label="Optional note" style="width:100%;margin-top:10px"><div class="row" style="margin-top:10px;gap:8px;flex-wrap:wrap"><button class="btn sm" data-nto="move" data-id="'+it.id+'">Move</button>'+(it.goal?'':'<button class="btn ghost sm" data-nto="partial" data-id="'+it.id+'">Partly done</button>')+'<button class="btn ghost sm" data-nto="skipped" data-id="'+it.id+'">Skip on purpose</button><button class="btn ghost sm" id="ntx">Cancel</button></div></div>'}
+function vAside(a){if(!a.length)return '';var h='<div class="item"><h3>Set aside this week ('+a.length+')</h3>';a.forEach(function(it){h+='<div class="row sp" style="margin-top:10px;align-items:flex-start"><div><span class="badge">'+esc(OUTL[it.out]||it.out)+'</span><p style="margin-top:4px">'+esc(it.goal?it.t:(it.step||it.t))+'</p>'+(it.on?'<p class="mute">'+esc(it.on)+'</p>':'')+'</div><button class="btn ghost sm" data-setback="'+it.id+'">Undo</button></div>'});return h+'</div>'}
+function recsFlat(){var m={};(REC||[]).forEach(function(r){m[r.id]=r});(S.rq||[]).forEach(function(q){m[q.id]=Object.assign({id:q.id},q.data)});return Object.keys(m).map(function(k){return m[k]})}
+function loadRecs(){RECLOAD=true;if(!(window.cloud&&window.cloud.listRecs&&U)){REC=REC||[];return}
+window.cloud.listRecs().then(function(r){REC=r;RECERR=false;render()}).catch(function(){REC=REC||[];RECERR=true;render()})}
+function chartSVG(ser){var W=340,H=170,L=38,T=10,B=26,ch=H-T-B,n=ser.length,bw=Math.floor((W-L-6)/n),gap=Math.max(3,Math.round(bw*.25)),h='<svg viewBox="0 0 '+W+' '+H+'" width="100%" role="img" aria-label="Weekly completion rate for the last '+n+' weeks" style="display:block;margin-top:10px">';
+[0,50,100].forEach(function(v){var y=T+ch-ch*v/100;h+='<line x1="'+L+'" x2="'+W+'" y1="'+y+'" y2="'+y+'" style="stroke:var(--line)" stroke-width="1"/><text x="'+(L-6)+'" y="'+(y+4)+'" text-anchor="end" font-size="10" style="fill:var(--mute)">'+v+'%</text>'});
+ser.forEach(function(w,i){var x=L+i*bw+gap/2,bwid=bw-gap;
+if(w.rate===null){h+='<line x1="'+x+'" x2="'+(x+bwid)+'" y1="'+(T+ch-1)+'" y2="'+(T+ch-1)+'" style="stroke:var(--line)" stroke-width="2" stroke-dasharray="3 3"/>';return}
+var bh=Math.max(2,Math.round(ch*w.rate));h+='<rect x="'+x+'" y="'+(T+ch-bh)+'" width="'+bwid+'" height="'+bh+'" rx="3" style="fill:var(--pri)" opacity="'+(w.current?.45:1)+'"/>'});
+[0,Math.floor(n/2),n-1].forEach(function(i,k){h+='<text x="'+(k===0?L:k===2?W:L+i*bw+bw/2)+'" y="'+(H-8)+'" text-anchor="'+(k===0?'start':k===2?'end':'middle')+'" font-size="10" style="fill:var(--mute)">'+dfmt(ser[i].start)+'</text>'});
+return h+'</svg>'}
+function vGrowth(){var P=window.Progress;if(!P)return '<p class="mute">Loading...</p>';
+var recs=recsFlat(),ser=P.weeklySeries(recs,S.weeks||[],{now:Date.now(),weeks:12,recFrom:S.recFrom||0}),has=ser.some(function(w){return w.rate!==null});
+var h='<h3>Consistency</h3><p class="mute">Your completion rate for each week, worked out from your saved records. Partly done counts as half. Actions you skip on purpose or move to later are left out. Ups and downs are normal.</p>';
+if(RECERR)h+='<p class="warn">Some records could not be loaded. Showing what is available.</p>';
+if(!has)return h+'<div class="item"><p class="mute">Your graph appears once a week has records. Mark actions as done, partly done, skipped or moved and they are recorded here.</p></div>';
+h+=chartSVG(ser);
+var t=P.trend(ser),tx={improving:'Your last two finished weeks are higher than the two before.',steady:'Your last two finished weeks are about the same as the two before.',declining:'Your last two finished weeks are lower than the two before. That is useful to know, not a failure.',insufficient:'A few more finished weeks are needed to show a trend.'};
+h+='<p style="margin-top:8px">'+tx[t.label]+'</p>';
+if(ser.some(function(w){return w.source==='summary'||w.source==='mixed'}))h+='<p class="mute">Weeks before '+(S.recFrom?dfmt(S.recFrom):'record keeping')+' come from your weekly summaries.</p>';
+h+='<details style="margin-top:10px"><summary style="cursor:pointer;color:var(--pri);font-weight:700">Show the numbers</summary><ul style="padding-left:18px;margin-top:8px">';
+ser.slice().reverse().forEach(function(w){if(w.rate===null)return;h+='<li>'+dfmt(w.start)+(w.current?' (so far)':'')+': '+Math.round(w.rate*100)+'%. '+w.done+' done, '+w.partial+' partly done, '+w.skipped+' skipped, '+w.moved+' moved, '+(w.missed+w.pending)+(w.current?' still open':' missed')+'.</li>'});
+h+='</ul></details>';
+var sm=P.sumWeeks(ser.slice(-4));
+h+='<div class="item" style="margin-top:14px"><h3>Last 4 weeks</h3><p class="mute">'+sm.planned+' planned actions</p><ul style="padding-left:18px;margin-top:6px"><li>'+sm.done+' done</li><li>'+sm.partial+' partly done</li><li>'+sm.skipped+' skipped on purpose</li><li>'+sm.moved+' moved to later</li><li>'+(sm.missed+sm.pending)+' missed or still open</li></ul></div>';
+var rc=recs.slice().sort(function(a,b){return (b.sched||0)-(a.sched||0)}).slice(0,12),cw=wkKey(Date.now());
+if(rc.length){h+='<h3 style="margin-top:18px">Recent actions</h3>';rc.forEach(function(r){var lab=(r.outcome==='pending'&&r.sched&&wkKey(r.sched)<cw)?'missed':r.outcome;h+='<div class="item"><div class="row sp"><span class="badge">'+esc(OUTL[lab]||lab)+'</span><span class="mute">'+dfmt(r.sched)+'</span></div><p style="margin-top:6px">'+esc(r.title||'')+'</p>'+(r.note?'<p class="mute">'+esc(r.note)+'</p>':'')+'</div>'})}
+return h}
+function infoBtn(){return '<button class="info" id="streakInfo" aria-expanded="'+STIP+'" aria-controls="streakTip" aria-label="How the weekly streak works">i</button>'}
+function tipHTML(){return '<p class="tip" id="streakTip">A week counts toward your streak when you finish at least half of that week\'s actions or at least 3 of them, whichever is lower. Weeks run Monday to Sunday. One missed week is forgiven per streak.</p>'}
+function vDots(){var now=new Date();now.setHours(0,0,0,0);var mon=new Date(now);mon.setDate(mon.getDate()-((now.getDay()+6)%7));
+var L=['M','T','W','T','F','S','S'],N=['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'],h='<div class="dots" role="list" aria-label="Days with a finished action this week">',i;
+for(i=0;i<7;i++){var a=new Date(mon);a.setDate(mon.getDate()+i);var e=new Date(a);e.setDate(a.getDate()+1);var on=(S.completed||[]).some(function(c){return c.at>=a.getTime()&&c.at<e.getTime()});
+h+='<span class="dot'+(on?' on':'')+(a.getTime()===now.getTime()?' today':'')+'" role="listitem" aria-label="'+N[i]+(on?', action finished':', no action finished')+'">'+L[i]+'</span>'}
+return h+'</div>'}
+function vStreak(){var t=streakInfo();
+return '<div class="item"><div class="row sp"><div class="row" style="gap:8px"><h3>Weekly streak</h3>'+infoBtn()+'</div><span class="mute">Best: '+t.best+'</span></div><div class="big-n" style="margin-top:8px">'+t.n+'<span class="mute" style="font-size:16px;font-weight:500"> week'+(t.n===1?'':'s')+'</span></div>'+(STIP?tipHTML():'')+vDots()+'<p class="mute" style="margin-top:10px">'+(t.cur?'This week is counted. You have finished '+t.done+' action'+(t.done===1?'':'s')+' so far.':'This week: '+t.done+' of '+t.need+' needed to count.')+(t.graced?' One missed week was forgiven.':'')+'</p></div>'}
+function vStreakMini(){var t=streakInfo(),m;
+if(t.n)m='<strong>'+t.n+' week'+(t.n===1?'':'s')+' streak</strong>'+(t.cur?'':' <span class="mute">Finish '+(t.need-t.done)+' more action'+((t.need-t.done)===1?'':'s')+' this week to keep it.</span>');
+else m='<span class="mute">Finish '+t.need+' action'+(t.need===1?'':'s')+' this week to start a streak.</span>';
+return '<div class="row" style="margin-top:6px;gap:8px;flex-wrap:wrap">'+m+infoBtn()+'</div>'+(STIP?tipHTML():'')}
+function wCard(w,title){var rt=window.Progress?window.Progress.rateOf(w):null,p=rt===null?pct(w.done,w.planned):Math.round(rt*100);return '<div class="item"><div class="row sp"><h3>'+esc(title)+'</h3><span class="mute">'+p+'%</span></div><p><strong>'+w.done+' of '+w.planned+'</strong> actions done</p><div class="bar"><i style="width:'+p+'%"></i></div><p class="mute">'+w.minDone+' of '+w.minPlanned+' min</p>'+((w.partial||w.skipped||w.moved)?'<p class="mute">'+[w.partial?w.partial+' partly done':'',w.skipped?w.skipped+' skipped on purpose':'',w.moved?w.moved+' moved to later':''].filter(Boolean).join(', ')+'.</p>':'')
 +((w.doneItems||[]).length?'<p class="mute" style="margin-top:8px"><strong>Finished:</strong> '+w.doneItems.slice(0,5).map(esc).join('; ')+(w.done>5?' and '+(w.done-5)+' more':'')+'</p>':'')
 +((w.openItems||[]).length?'<p class="mute" style="margin-top:6px"><strong>Not finished:</strong> '+w.openItems.slice(0,3).map(esc).join('; ')+((w.planned-w.done)>3?' and '+(w.planned-w.done-3)+' more':'')+'</p>':'')
 +((w.end&&w.start&&(w.end-w.start)<6*864e5)?'<p class="mute" style="margin-top:6px">'+(w.done>=w.planned?'Finished early.':'Closed early.')+'</p>':'')+(w.nextSize?'<p class="mute" style="margin-top:6px">Next week: '+w.nextSize+' saves.</p>':'')+'</div>'}
 function wTitle(w){var a=dfmt(w.start),b=dfmt(w.end||w.start);return a===b?a:a+' to '+b}
 function vProg(){var C=S.completed||[],W=S.weeks||[];if(!S.plan&&!C.length&&!W.length)return '<div class="empty"><h2>Progress</h2><p class="mute">Build a plan to start tracking.</p></div>';
-var h='<h2>Progress</h2><div class="chips" role="group" aria-label="Progress view"><button class="chip" data-pt="overview" aria-pressed="'+(PT==='overview')+'">Overview</button><button class="chip" data-pt="done" aria-pressed="'+(PT==='done')+'">Completed Actions ('+C.length+')</button><button class="chip" data-pt="weeks" aria-pressed="'+(PT==='weeks')+'">Weekly Summary</button></div>';
+var h='<h2>Progress</h2><div class="chips" role="group" aria-label="Progress view"><button class="chip" data-pt="overview" aria-pressed="'+(PT==='overview')+'">Overview</button><button class="chip" data-pt="done" aria-pressed="'+(PT==='done')+'">Completed Actions ('+C.length+')</button><button class="chip" data-pt="weeks" aria-pressed="'+(PT==='weeks')+'">Weekly Summary</button><button class="chip" data-pt="growth" aria-pressed="'+(PT==='growth')+'">Growth</button></div>';
 if(PT==='done'){h+='<h3>Completed Actions</h3>';
 if(!C.length)return h+'<div class="empty"><p class="mute">Nothing completed yet. Finish an action in Plan and it shows up here.</p></div>';
 C.slice().reverse().forEach(function(c){h+='<div class="item"><div class="row sp"><span class="day" style="color:var(--ok)">Done</span><span class="mute">'+esc(ago(c.at))+'</span></div><h3 style="margin-top:4px">'+esc(c.t)+'</h3><p class="mute">'+(c.goal?'Goal: '+esc(c.target)+' '+esc(c.metric):(c.from?'From save: '+esc(c.from):esc(c.step)))+'</p><div style="margin-top:8px"><button class="btn ghost sm" data-undo="'+esc(c.pid)+'" data-wk="'+(c.wk||'')+'">Undo</button></div></div>'});return h}
-if(PT==='weeks'){h+='<h3>Weekly Summary</h3>';var st=streak();
-if(st)h+='<div class="item"><strong>'+st+' week'+(st>1?'s':'')+' in a row</strong><p class="mute">Finishing at least half of your actions each week.</p></div>';
+if(PT==='growth'){if(!RECLOAD)loadRecs();return h+vGrowth()}
+if(PT==='weeks'){h+='<h3>Weekly Summary</h3>'+vStreak();
 if(S.plan)h+=wCard(weekStats(S.plan),'This week so far');
 if(!W.length)h+='<div class="item mute">Your first full summary appears when you finish a week and start the next one.</div>';
 W.slice().reverse().forEach(function(w){h+=wCard(w,wTitle(w))});return h}
-if(!S.plan)return h+'<div class="empty"><p class="mute">No plan this week. Pick saves in Review to build one.</p><button class="btn" data-t="review" style="margin-top:12px">Start review</button></div>';
-var d=S.plan.filter(isDone).length,n=S.plan.length;
-return h+'<div class="item"><div class="big-n">'+d+' of '+n+'</div><p class="mute">actions done this week</p><div class="bar"><i style="width:'+(n?d/n*100:0)+'%"></i></div></div><div class="item"><div class="big-n">'+S.total+'</div><p class="mute">total actions completed since you started</p></div>'+(d===n&&n?'<div class="item"><strong>Week complete.</strong> Start next week when you are ready.<div style="margin-top:8px"><button class="btn sm" id="nextwk">Start next week</button></div></div>':'<div class="item mute">Finish every action and next week adds a save (2, 4, then 6). Finish under half and it steps down.</div>')}
-function logDone(it){S.completed=S.completed||[];S.completed.push({pid:it.id,wk:S.wk||0,t:it.goal?it.t:(it.step||it.t),from:it.goal?'':it.t,step:it.step||'',goal:!!it.goal,metric:it.metric||'',target:it.target||0,at:Date.now()});S.completed=S.completed.slice(-300)}
+if(!S.plan)return h+vStreak()+'<div class="empty"><p class="mute">No plan this week. Pick saves in Review to build one.</p><button class="btn" data-t="review" style="margin-top:12px">Start review</button></div>';
+var d=S.plan.filter(isDone).length,n=S.plan.length,hd=S.plan.filter(isSet).length;
+return h+vStreak()+'<div class="item"><div class="big-n">'+d+' of '+n+'</div><p class="mute">actions done this week</p><div class="bar"><i style="width:'+(n?d/n*100:0)+'%"></i></div></div><div class="item"><div class="big-n">'+S.total+'</div><p class="mute">total actions completed since you started</p></div>'+(hd===n&&n?'<div class="item"><strong>Week complete.</strong> Start next week when you are ready.<div style="margin-top:8px"><button class="btn sm" id="nextwk">Start next week</button></div></div>':'<div class="item mute">Finish every action and next week adds a save (2, 4, then 6). Finish under half and it steps down.</div>')}
+function logDone(it){S.completed=S.completed||[];S.completed.push({pid:it.id,wk:S.wk||0,t:it.goal?it.t:(it.step||it.t),from:it.goal?'':it.t,step:it.step||'',goal:!!it.goal,metric:it.metric||'',target:it.target||0,at:Date.now()});S.completed=S.completed.slice(-300);streakSync()}
 document.addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;
-if(b.dataset.pt)PT=b.dataset.pt;
+if(b.dataset.pt){PT=b.dataset.pt;RECLOAD=false}
 if(b.dataset.rm){RM=+b.dataset.rm;render()}
 else if(b.dataset.rmno){RM=null;render()}
 else if(b.dataset.ed){var es=S.saves.filter(function(x){return x.id===+b.dataset.ed})[0];if(es){EDIT=es.id;EDITERR='';EDITD={title:es.title,cat:es.cat,sum:es.sum||'',ing:(es.ing||[]).join('\n'),parts:partsOf(es).map(function(p){return {act:p.act,min:p.min,sum:p.sum}})};render()}}
@@ -336,20 +450,25 @@ else if(b.dataset.edsave){readEdit();var s0=S.saves.filter(function(x){return x.
 if(!s0||!tt||!acts.length){EDITERR='Add a title and at least one action.';render()}
 else{s0.title=tt.slice(0,80);s0.cat=EDITD.cat;s0.sum=String(EDITD.sum).trim();s0.parts=acts.map(function(p){return {act:String(p.act).trim(),min:Math.min(600,Math.max(1,+p.min||15)),sum:p.sum||''}});s0.act=s0.parts[0].act;s0.min=s0.parts.reduce(function(a,p){return a+p.min},0);var il=String(EDITD.ing).split('\n').map(function(x){return x.trim()}).filter(Boolean);s0.ing=(s0.cat==='Cook'&&il.length)?il:null;s0.miss=null;syncPlan(s0);EDIT=null;EDITD=null;EDITERR='';save();render()}}
 else if(b.id==='nextwk'){closeWeek();go('review')}
+else if(b.id==='streakInfo'){STIP=!STIP;render()}
+else if(b.dataset.nt){NT=b.dataset.nt;render()}
+else if(b.id==='ntx'){NT=null;render()}
+else if(b.dataset.nto){outcomeSet(b.dataset.id,b.dataset.nto)}
+else if(b.dataset.setback){outcomeUndo(b.dataset.setback)}
 else if(b.dataset.aw){addToWeek(+b.dataset.aw)}
 else if(b.id==='awno'){JUST=null;render()}
 else if(b.id==='adjyes'){applyAdjust()}
 else if(b.id==='adjno'){S.adj=null;save();render()}
-else if(b.dataset.rmyes){var rid=+b.dataset.rmyes;S.saves=S.saves.filter(function(x){return x.id!==rid});delete S.dec[rid];if(S.plan){S.plan=S.plan.filter(function(x){return x.goal||isDone(x)||x.id.indexOf('p'+rid+'_')!==0});if(!S.plan.length){S.plan=null;S.wk=null;S.groc={}}}RM=null;save();render()}
-else if(b.dataset.undo){var up=b.dataset.undo,uw=+b.dataset.wk||0;var ci=-1;(S.completed||[]).forEach(function(c,k){if(c.pid===up&&(c.wk||0)===uw)ci=k});if(ci>=0){S.completed.splice(ci,1);S.total=Math.max(0,S.total-1);if(uw===(S.wk||0)){var pi=(S.plan||[]).filter(function(x){return x.id===up})[0];if(pi){pi.done=false;if(pi.goal)pi.cur=Math.max(0,pi.target-1)}}save();render()}}
+else if(b.dataset.rmyes){var rid=+b.dataset.rmyes;S.saves=S.saves.filter(function(x){return x.id!==rid});delete S.dec[rid];if(S.plan){S.plan=S.plan.filter(function(x){return x.goal||isSet(x)||x.id.indexOf('p'+rid+'_')!==0});if(!S.plan.length){S.plan=null;S.wk=null;S.groc={}}}RM=null;save();render()}
+else if(b.dataset.undo){var up=b.dataset.undo,uw=+b.dataset.wk||0;var ci=-1;(S.completed||[]).forEach(function(c,k){if(c.pid===up&&(c.wk||0)===uw)ci=k});if(ci>=0){S.completed.splice(ci,1);streakSync();S.total=Math.max(0,S.total-1);if(uw===(S.wk||0)){var pi=(S.plan||[]).filter(function(x){return x.id===up})[0];if(pi){pi.done=false;if(pi.goal)pi.cur=Math.max(0,pi.target-1);evAdd(pi,'undone');recQueue(pi,false)}}save();render()}}
 else if(b.dataset.t)go(b.dataset.t);
 else if(b.dataset.pt)render();
 else if(b.dataset.size){S.size=+b.dataset.size;save();render()}
 else if(b.dataset.d)decide(b.dataset.d);
 else if(b.id==='build')build();
 else if(b.id==='resetRev'){Object.keys(S.dec).forEach(function(k){if(S.dec[k]!=='used')delete S.dec[k]});save();render()}
-else if(b.dataset.done){var it=S.plan.filter(function(x){return x.id===b.dataset.done})[0];if(it&&!it.done){it.done=true;S.total++;logDone(it);save();b.classList.add('on');b.textContent='Done';b.setAttribute('aria-pressed','true');setTimeout(render,650)}}
-else if(b.dataset.rep){var g=S.plan.filter(function(x){return x.id===b.dataset.rep})[0];if(g&&(g.cur||0)<g.target){g.cur=(g.cur||0)+1;if(g.cur===g.target){S.total++;logDone(g)}save();render()}}
+else if(b.dataset.done){var it=S.plan.filter(function(x){return x.id===b.dataset.done})[0];if(it&&!it.done){it.done=true;S.total++;logDone(it);evAdd(it,'done');recQueue(it,false);save();b.classList.add('on');b.textContent='Done';b.setAttribute('aria-pressed','true');setTimeout(render,650)}}
+else if(b.dataset.rep){var g=S.plan.filter(function(x){return x.id===b.dataset.rep})[0];if(g&&(g.cur||0)<g.target){g.cur=(g.cur||0)+1;evAdd(g,g.cur>=g.target?'done':'progress',{n:g.cur});if(g.cur===g.target){S.total++;logDone(g)}recQueue(g,false);save();render()}}
 });
 document.addEventListener('change',function(e){if(e.target.dataset&&e.target.dataset.g!==undefined){S.groc[e.target.dataset.g]=e.target.checked;save()}else if(e.target.id==='ed-cat'){readEdit();render()}});
 function sheet(o){$('sheet').classList.toggle('open',o)}
@@ -443,7 +562,7 @@ else if(b.id==='delNo'){ACC.confirm=false;ACC.err='';render()}
 else if(b.id==='delYes'&&window.cloud)delAccount(false);
 else if(b.id==='delRe'&&window.cloud)delAccount(true)});
 window.onAuth=function(u,data,err){if(err){LOADERR=true;U=null;render();return}LOADERR=false;U=u;
-if(u){DEL=false;if(data&&data.saves){S=data;norm();LASTSYNC=cloudStr()}else{S={tab:'saves',saves:[],dec:{},size:4,plan:null,total:0,reps:0,groc:{}};norm();save()}}render();takeShared();if(u&&GUEST_PENDING){GUEST_PENDING=false;$('sgate').hidden=true;setTimeout(function(){$('saveIt').click()},50)}};
+if(u){DEL=false;if(data&&data.saves){S=data;norm();LASTSYNC=cloudStr()}else{S={tab:'saves',saves:[],dec:{},size:4,plan:null,total:0,reps:0,groc:{}};norm();save()}}render();takeShared();if(u)flushRecs();if(u&&GUEST_PENDING){GUEST_PENDING=false;$('sgate').hidden=true;setTimeout(function(){$('saveIt').click()},50)}};
 document.addEventListener('click',function(e){var b=e.target.closest('button');if(!b||!window.cloud)return;
 if(b.id==='signin'||b.dataset.signin){window.cloud.signIn().catch(function(e){var m=(e&&(e.code==='auth/popup-closed-by-user'||e.code==='auth/cancelled-popup-request'))?'':'Sign-in failed. Make sure this site is an authorized domain in Firebase Auth.';['gerr','gerr2'].forEach(function(i){var g=$(i);if(g)g.textContent=m})})}
 else if(b.id==='signout'){ACC.serr='';var out=function(){try{localStorage.removeItem(KEY)}catch(x){}window.cloud.signOut()};if(!U||DEL){out();return}clearTimeout(_t);_t=null;var str=cloudStr();if(str===LASTSYNC){out();return}window.cloud.save(JSON.parse(str)).then(function(){LASTSYNC=str;out()}).catch(function(){ACC.serr='Your latest changes could not be saved, so you were not signed out. Check your connection and try again.';render()})}});
@@ -463,19 +582,25 @@ else if(d.grm!==undefined){S.goals.splice(+d.grm,1);save();render()}});
 if(CLOUD_ON){$('main').innerHTML='<p class="mute">Loading...</p>'}else{render();takeShared()}
 </script>
 <script type="module">
+import*as P from "/js/progress.mjs";window.Progress=P;if(window.onProgressReady)window.onProgressReady();
+</script>
+<script type="module">
 if(window.CLOUD_ON){
 const A="https://www.gstatic.com/firebasejs/10.12.2/";
 const {initializeApp}=await import(A+"firebase-app.js");
 const {getAuth,GoogleAuthProvider,signInWithPopup,signOut,onAuthStateChanged,deleteUser,reauthenticateWithPopup}=await import(A+"firebase-auth.js");
-const {getFirestore,doc,getDoc,setDoc,deleteDoc}=await import(A+"firebase-firestore.js");
+const {getFirestore,doc,getDoc,setDoc,deleteDoc,collection,getDocs,query,orderBy,limit}=await import(A+"firebase-firestore.js");
 const app=initializeApp(window.FB),auth=getAuth(app),db=getFirestore(app);
+const purge=async()=>{const t=await auth.currentUser.getIdToken();const r=await fetch("/api/account",{method:"POST",headers:{"content-type":"application/json",authorization:"Bearer "+t},body:JSON.stringify({action:"purge"})});if(!r.ok)throw new Error("purge failed")};
 window.cloud={
 signIn:()=>signInWithPopup(auth,new GoogleAuthProvider()),
 signOut:()=>signOut(auth),
 token:()=>auth.currentUser?auth.currentUser.getIdToken():Promise.resolve(null),
-deleteAll:async()=>{const u=auth.currentUser;await deleteDoc(doc(db,"actionablyApp",u.uid));await deleteUser(u)},
+deleteAll:async()=>{const u=auth.currentUser;await purge();await deleteDoc(doc(db,"actionablyApp",u.uid));await deleteUser(u)},
 reauthDelete:async()=>{const u=auth.currentUser;await reauthenticateWithPopup(u,new GoogleAuthProvider());await deleteUser(u)},
-save:(st)=>setDoc(doc(db,"actionablyApp",auth.currentUser.uid),{state:JSON.stringify(st),updated:Date.now()})
+save:(st)=>setDoc(doc(db,"actionablyApp",auth.currentUser.uid),{state:JSON.stringify(st),updated:Date.now()}),
+putRec:(r)=>setDoc(doc(db,"growth",auth.currentUser.uid,"records",r.id),r.data),
+listRecs:async()=>{const s=await getDocs(query(collection(db,"growth",auth.currentUser.uid,"records"),orderBy("sched","desc"),limit(800)));return s.docs.map(d=>Object.assign({id:d.id},d.data()))}
 };
 onAuthStateChanged(auth,async(u)=>{let data=null;
 if(u){try{const d=await getDoc(doc(db,"actionablyApp",u.uid));if(d.exists())data=JSON.parse(d.data().state)}catch(e){window.onAuth(null,null,true);return}}
