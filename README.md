@@ -23,7 +23,7 @@ Instagram has no public API for saved posts, so saves come in as screenshots or 
 ```
 index.html                  frontend
 netlify/functions/ai.mjs         AI function (extract, plan, goals)
-netlify/functions/account.mjs    Deletes data browsers cannot delete (action records, usage counts)
+netlify/functions/account.mjs    Deletes data browsers cannot delete: reset (action records) and purge (records plus usage counts)
 js/progress.mjs                  Progress calculations (completion rate, weekly series, trend). Loaded by the app and covered by tests
 tests/progress.test.mjs          Unit tests for the calculations. Run with: npm test
 package.json                function dependency (firebase-admin) and the test script
@@ -74,4 +74,6 @@ Every plan action ends the week with an outcome: done, partly done, skipped on p
 
 After changing `firestore.rules`, publish the new rules in the Firebase console (Firestore, Rules, Publish). The Rules Playground there can check that you can write your own records and cannot write someone else's.
 
-Deleting an account calls `/api/account` first, which needs `FIREBASE_SERVICE_ACCOUNT_JSON`. Without it, deletion is blocked so records are never left behind.
+Reset all progress (My Account) deletes a user's records through `/api/account` with the `reset` action, then clears weekly history, completed actions, streak and this week's plan in the app. Saves and settings are kept. AI usage counts are deliberately not reset.
+
+Deleting an account calls `/api/account` with the `purge` action first, which needs `FIREBASE_SERVICE_ACCOUNT_JSON`. Without it, deletion is blocked so records are never left behind.

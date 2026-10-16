@@ -150,7 +150,7 @@ var PT='overview',RM=null,PRE=null,EDIT=null,EDITD=null,EDITERR='',CATS=['Cook',
 function partsOf(s){if(Array.isArray(s.parts)&&s.parts.length)return s.parts;return [{act:s.act,min:s.min,sum:s.sum}]}
 function ago(t){if(!t)return '';var d=new Date(t);return d.toLocaleDateString(undefined,{month:'short',day:'numeric'})}
 function nav(){var T=TABS.slice();if(U)T.push(['account','<span class="mq">My </span>Account']);$('nav').innerHTML=T.map(function(t){return '<button data-t="'+t[0]+'" aria-current="'+(S.tab===t[0])+'">'+t[1]+'</button>'}).join('')}
-function go(t,keep){S.tab=t;EDIT=null;EDITD=null;if(!keep){FLASH='';JUST=null}if(t==='progress')RECLOAD=false;save();render();window.scrollTo(0,0)}
+function go(t,keep){S.tab=t;EDIT=null;EDITD=null;if(!keep){FLASH='';JUST=null}if(t==='progress')RECLOAD=false;ACC.rsMsg='';save();render();window.scrollTo(0,0)}
 function themeCount(){var c={};S.saves.forEach(function(s){c[s.theme]=(c[s.theme]||0)+1});return c}
 function picks(){return S.saves.filter(function(s){return S.dec[s.id]==='do'})}
 function queue(){return S.saves.filter(function(s){return !S.dec[s.id]||S.dec[s.id]==='later'}).sort(function(a,b){return (S.dec[a.id]==='later'?1:0)-(S.dec[b.id]==='later'?1:0)||b.id-a.id})}
@@ -211,7 +211,7 @@ function fitScore(s){var f=(S.profile&&S.profile.focus)||[],sc=0;f.forEach(funct
 function budgetMins(){return Math.round(((S.profile&&S.profile.hours)||3)*60)}
 function picksMin(){return picks().slice(0,S.size).reduce(function(a,s){return a+(+partsOf(s)[0].min||s.min||15)},0)}
 function goalBudget(){var b=budgetMins();return Math.max(Math.round(b*0.3),b-picksMin())}
-var MAXOPEN=14,ADDCAP=3,ADJMAX=2,ADJCHG=3,FLASH='',JUST=null,STIP=false,NT=null,REC=null,RECLOAD=false,RECERR=false,FLUSHING=false;
+var MAXOPEN=14,ADDCAP=3,ADJMAX=2,ADJCHG=3,FLASH='',JUST=null,STIP=false,NT=null,REC=null,RECLOAD=false,RECERR=false,FLUSHING=false,RS=false;
 function saveById(id){return S.saves.filter(function(x){return x.id===id})[0]}
 function sidOf(x){return +String(x.id).split('_')[0].slice(1)}
 function planSaveIds(){var o=[];(S.plan||[]).forEach(function(x){if(x.goal)return;var n=sidOf(x);if(n&&o.indexOf(n)<0)o.push(n)});return o}
@@ -365,7 +365,7 @@ var r=recOf(it,closing);r.v=(S.rv=(S.rv||0)+1);S.rq=(S.rq||[]).filter(function(x
 if(!S.recFrom)S.recFrom=Date.now();
 if(!noFlush){save();flushRecs()}}
 function finalizeRecs(){(S.plan||[]).forEach(function(it){recQueue(it,true,true)});flushRecs()}
-function flushRecs(){if(!window.cloud||!window.cloud.putRec||!U||DEL||FLUSHING)return;var q=(S.rq||[]).slice();if(!q.length)return;FLUSHING=true;
+function flushRecs(){if(!window.cloud||!window.cloud.putRec||!U||DEL||RS||FLUSHING)return;var q=(S.rq||[]).slice();if(!q.length)return;FLUSHING=true;
 (function next(i){if(i>=q.length){FLUSHING=false;save();return}
 window.cloud.putRec(q[i]).then(function(){S.rq=(S.rq||[]).filter(function(x){return !(x.id===q[i].id&&x.v===q[i].v)});next(i+1)}).catch(function(){FLUSHING=false})})(0)}
 function outcomeSet(id,kind){var it=(S.plan||[]).filter(function(x){return x.id===id})[0];if(!it||isDone(it))return;
@@ -406,6 +406,14 @@ h+='<div class="item" style="margin-top:14px"><h3>Last 4 weeks</h3><p class="mut
 var rc=recs.slice().sort(function(a,b){return (b.sched||0)-(a.sched||0)}).slice(0,12),cw=wkKey(Date.now());
 if(rc.length){h+='<h3 style="margin-top:18px">Recent actions</h3>';rc.forEach(function(r){var lab=(r.outcome==='pending'&&r.sched&&wkKey(r.sched)<cw)?'missed':r.outcome;h+='<div class="item"><div class="row sp"><span class="badge">'+esc(OUTL[lab]||lab)+'</span><span class="mute">'+dfmt(r.sched)+'</span></div><p style="margin-top:6px">'+esc(r.title||'')+'</p>'+(r.note?'<p class="mute">'+esc(r.note)+'</p>':'')+'</div>'})}
 return h}
+function progressWipe(){S.plan=null;S.wk=null;S.groc={};S.weeks=[];S.completed=[];S.total=0;S.reps=0;S.history=[];S.goals=[];S.sizeNote='';S.size=4;S.sw={};S.swInit=1;S.best=0;S.recFrom=0;S.rq=[];S.rv=0;S.gseq=0;S.adj=null;S.adjN=0;S.planNote='';
+var nd={};Object.keys(S.dec||{}).forEach(function(k){if(S.dec[k]==='drop')nd[k]=S.dec[k]});S.dec=nd;
+REC=null;RECLOAD=false;RECERR=false;NT=null;JUST=null;FLASH='';STIP=false;SUGG=null}
+function whenIdle(cb,n){if(!FLUSHING||(n||0)>30)cb();else setTimeout(function(){whenIdle(cb,(n||0)+1)},100)}
+function resetAll(){ACC.rsBusy=true;ACC.rsErr='';ACC.rsMsg='';RS=true;clearTimeout(_t);render();
+whenIdle(function(){var p=(window.cloud&&window.cloud.resetRecs&&U)?window.cloud.resetRecs():Promise.resolve();
+p.then(function(){progressWipe();ACC.rsBusy=false;ACC.rsConfirm=false;ACC.rsMsg='Your progress was reset. Your saves and settings were kept, and everything you saved is back in Review.';RS=false;save();render()})
+.catch(function(){ACC.rsBusy=false;RS=false;ACC.rsErr='Could not reset right now. Nothing was changed. Check your connection and try again.';render()})},0)}
 function infoBtn(){return '<button class="info" id="streakInfo" aria-expanded="'+STIP+'" aria-controls="streakTip" aria-label="How the weekly streak works">i</button>'}
 function tipHTML(){return '<p class="tip" id="streakTip">A week counts toward your streak when you finish at least half of that week\'s actions or at least 3 of them, whichever is lower. Weeks run Monday to Sunday. One missed week is forgiven per streak.</p>'}
 function vDots(){var now=new Date();now.setHours(0,0,0,0);var mon=new Date(now);mon.setDate(mon.getDate()-((now.getDay()+6)%7));
@@ -540,6 +548,13 @@ return h+'<div class="empty"><h3>Ready to start?</h3><p class="mute" style="marg
 function vAcct(){var h='<h2>My Account</h2><div class="item"><p class="mute">Signed in as</p><p><strong>'+esc((U&&U.email)||'')+'</strong></p><div style="margin-top:12px"><button class="btn ghost sm" id="signout">Sign out</button></div>'+(ACC.serr?'<p class="warn">'+esc(ACC.serr)+'</p>':'')+'</div>';
 h+='<div class="item"><h3>Your focus and time</h3><p class="mute" style="margin-top:4px">'+esc(profLine())+'</p><div style="margin-top:10px"><button class="btn ghost sm" id="editprof">Change my focus and time</button></div></div>';
 h+='<div class="item"><h3>Privacy</h3><p class="mute" style="margin-top:4px">How Actionably handles your data.</p><p style="margin-top:8px"><a href="/privacy.html" target="_blank" rel="noopener">Read the Privacy Policy</a></p></div>';
+h+='<div class="item"><h3>Reset all progress</h3><p class="mute" style="margin-top:4px">Clears your weekly summaries, completed actions, streak, this week\'s plan and your Growth history. Your saves, your focus and time settings, and your account stay. Everything you saved goes back to Review. This cannot be undone.</p>';
+if(ACC.rsBusy)h+='<p class="mute" style="margin-top:10px">Resetting...</p>';
+else if(ACC.rsConfirm)h+='<p style="margin-top:10px"><strong>Reset all of your progress?</strong></p><div class="row" style="margin-top:8px;gap:8px;flex-wrap:wrap"><button class="btn sm" id="rsYes" style="background:var(--bad);color:var(--onpri)">Yes, reset everything</button><button class="btn ghost sm" id="rsNo">Cancel</button></div>';
+else h+='<button class="btn ghost sm" id="rsAsk" style="margin-top:10px;border-color:var(--bad);color:var(--bad)">Reset all progress</button>';
+if(ACC.rsErr)h+='<p class="warn">'+esc(ACC.rsErr)+'</p>';
+if(ACC.rsMsg)h+='<p style="margin-top:10px"><strong>'+esc(ACC.rsMsg)+'</strong></p>';
+h+='</div>';
 h+='<div class="item"><h3>Delete my account and data</h3><p class="mute" style="margin-top:4px">This permanently deletes your saves, plans and progress, and removes your account. It cannot be undone.</p>';
 if(ACC.busy)h+='<p class="mute" style="margin-top:10px">Deleting...</p>';
 else if(ACC.reauth)h+='<p class="mute" style="margin-top:10px">Your saves and plans are deleted. For security, confirm it is you to finish removing the account.</p><button class="btn sm" id="delRe" style="margin-top:8px;background:var(--bad);color:var(--onpri)">Confirm and delete account</button>';
@@ -558,6 +573,9 @@ render()})}
 document.addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;
 if(b.id==='tryAdd')$('addBtn').click();
 else if(b.id==='delAsk'){ACC.confirm=true;ACC.err='';render()}
+else if(b.id==='rsAsk'){ACC.rsConfirm=true;ACC.rsErr='';ACC.rsMsg='';render()}
+else if(b.id==='rsNo'){ACC.rsConfirm=false;render()}
+else if(b.id==='rsYes'){resetAll()}
 else if(b.id==='delNo'){ACC.confirm=false;ACC.err='';render()}
 else if(b.id==='delYes'&&window.cloud)delAccount(false);
 else if(b.id==='delRe'&&window.cloud)delAccount(true)});
@@ -591,7 +609,8 @@ const {initializeApp}=await import(A+"firebase-app.js");
 const {getAuth,GoogleAuthProvider,signInWithPopup,signOut,onAuthStateChanged,deleteUser,reauthenticateWithPopup}=await import(A+"firebase-auth.js");
 const {getFirestore,doc,getDoc,setDoc,deleteDoc,collection,getDocs,query,orderBy,limit}=await import(A+"firebase-firestore.js");
 const app=initializeApp(window.FB),auth=getAuth(app),db=getFirestore(app);
-const purge=async()=>{const t=await auth.currentUser.getIdToken();const r=await fetch("/api/account",{method:"POST",headers:{"content-type":"application/json",authorization:"Bearer "+t},body:JSON.stringify({action:"purge"})});if(!r.ok)throw new Error("purge failed")};
+const acct=async(action)=>{const t=await auth.currentUser.getIdToken();const r=await fetch("/api/account",{method:"POST",headers:{"content-type":"application/json",authorization:"Bearer "+t},body:JSON.stringify({action})});if(!r.ok)throw new Error(action+" failed")};
+const purge=()=>acct("purge");
 window.cloud={
 signIn:()=>signInWithPopup(auth,new GoogleAuthProvider()),
 signOut:()=>signOut(auth),
@@ -599,6 +618,7 @@ token:()=>auth.currentUser?auth.currentUser.getIdToken():Promise.resolve(null),
 deleteAll:async()=>{const u=auth.currentUser;await purge();await deleteDoc(doc(db,"actionablyApp",u.uid));await deleteUser(u)},
 reauthDelete:async()=>{const u=auth.currentUser;await reauthenticateWithPopup(u,new GoogleAuthProvider());await deleteUser(u)},
 save:(st)=>setDoc(doc(db,"actionablyApp",auth.currentUser.uid),{state:JSON.stringify(st),updated:Date.now()}),
+resetRecs:()=>acct("reset"),
 putRec:(r)=>setDoc(doc(db,"growth",auth.currentUser.uid,"records",r.id),r.data),
 listRecs:async()=>{const s=await getDocs(query(collection(db,"growth",auth.currentUser.uid,"records"),orderBy("sched","desc"),limit(800)));return s.docs.map(d=>Object.assign({id:d.id},d.data()))}
 };
