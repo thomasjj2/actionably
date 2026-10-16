@@ -1,7 +1,9 @@
 // Actionably: removes the data that browsers are not allowed to delete themselves.
-// POST /api/account  { "action": "purge" }
-// Deletes everything under growth/{uid} (action records and anything added later) and the
-// per-day AI usage counts for that user. The browser then deletes the main data document and the account.
+// POST /api/account  { "action": "purge" | "reset" }
+// reset: deletes everything under growth/{uid} (action records and anything added later). Used by Reset all progress.
+//        AI usage counts are NOT touched, so a reset cannot be used to get around the daily limit.
+// purge: does the same, and also deletes the per-day AI usage counts for that user. Used when deleting an account;
+//        the browser then deletes the main data document and the sign in account.
 // Env vars: FIREBASE_API_KEY (to verify the sign in) and FIREBASE_SERVICE_ACCOUNT_JSON (to delete).
 import { initializeApp, cert, getApps } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
@@ -44,7 +46,7 @@ export default async (req) => {
   } catch (e) {
     return json({ error: "Bad request" }, 400);
   }
-  if (!body || body.action !== "purge") return json({ error: "Unknown action" }, 400);
+  if (!body || !["purge", "reset"].includes(body.action)) return json({ error: "Unknown action" }, 400);
 
   const uid = await verify(req);
   if (!uid) return json({ error: "Sign in required" }, 401);
@@ -54,15 +56,17 @@ export default async (req) => {
 
   try {
     await d.recursiveDelete(d.doc("growth/" + uid));
-    const snap = await d.collection("aiUsage").where("uid", "==", uid).get();
-    for (let i = 0; i < snap.docs.length; i += 400) {
-      const batch = d.batch();
-      snap.docs.slice(i, i + 400).forEach((x) => batch.delete(x.ref));
-      await batch.commit();
+    if (body.action === "purge") {
+      const snap = await d.collection("aiUsage").where("uid", "==", uid).get();
+      for (let i = 0; i < snap.docs.length; i += 400) {
+        const batch = d.batch();
+        snap.docs.slice(i, i + 400).forEach((x) => batch.delete(x.ref));
+        await batch.commit();
+      }
     }
     return json({ ok: true });
   } catch (e) {
-    console.error("purge failed:", e.message);
+    console.error(body.action + " failed:", e.message);
     return json({ error: "Could not delete" }, 500);
   }
 };
