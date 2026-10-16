@@ -95,6 +95,9 @@ nav button{padding:12px 2px 10px;white-space:nowrap}
 .dot.today{border-color:var(--pri)}
 .info{position:relative;width:26px;height:26px;min-width:26px;border-radius:50%;border:2px solid var(--line);background:transparent;color:var(--pri);font:italic 700 14px/1 "Bricolage Grotesque",serif;display:inline-flex;align-items:center;justify-content:center;padding:0}
 .info:after{content:"";position:absolute;inset:-9px}
+.gtype{display:block;width:100%;text-align:left;background:var(--card);border:2px solid var(--line);border-radius:16px;padding:14px 16px;margin-top:10px;color:var(--ink);font:inherit;cursor:pointer}
+.gtype strong{display:block;font-size:17px}
+.gtype:focus-visible{outline:3px solid var(--pri);outline-offset:2px}
 .tip{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-top:10px;font-size:14px}
 .badge{display:inline-block;font-size:12px;font-weight:700;border-radius:8px;padding:2px 8px;background:var(--line);color:var(--ink)}
 .ntin{padding:10px;border-radius:12px;border:2px solid var(--line);background:var(--card);color:var(--ink);font:inherit}
@@ -134,7 +137,7 @@ var SEED=[
 ];
 var S={tab:'saves',saves:SEED.slice(),dec:{},size:4,plan:null,total:0,reps:0,groc:{}};
 try{var r=localStorage.getItem(KEY);if(r){var o=JSON.parse(r);if(o&&o.saves)S=o}}catch(e){}
-function norm(){S.tab=S.tab||'saves';S.completed=S.completed||[];S.rq=S.rq||[];S.weeks=S.weeks||[];S.dec=S.dec||{};S.groc=S.groc||{};if(S.plan&&!S.wk)S.wk=Date.now()}norm();
+function norm(){S.tab=S.tab||'saves';S.completed=S.completed||[];S.rq=S.rq||[];S.gq=S.gq||[];S.weeks=S.weeks||[];S.dec=S.dec||{};S.groc=S.groc||{};if(S.plan&&!S.wk)S.wk=Date.now()}norm();
 var LASTSYNC='',SYNCERR=false;
 function cloudStr(){var c={};for(var k in S)if(k!=='tab')c[k]=S[k];return JSON.stringify(c)}
 function syncBar(on){SYNCERR=on;var e=$('syncbar');if(!e)return;e.hidden=!on;e.textContent=on?'Could not save to your account. Your changes are kept on this device and will retry.':''}
@@ -154,7 +157,7 @@ function go(t,keep){S.tab=t;EDIT=null;EDITD=null;if(!keep){FLASH='';JUST=null}if
 function themeCount(){var c={};S.saves.forEach(function(s){c[s.theme]=(c[s.theme]||0)+1});return c}
 function picks(){return S.saves.filter(function(s){return S.dec[s.id]==='do'})}
 function queue(){return S.saves.filter(function(s){return !S.dec[s.id]||S.dec[s.id]==='later'}).sort(function(a,b){return (S.dec[a.id]==='later'?1:0)-(S.dec[b.id]==='later'?1:0)||b.id-a.id})}
-function render(){nav();var m=$('main');if(CLOUD_ON&&!U){$('nav').innerHTML='';m.innerHTML=vPreview();$('addBtn').hidden=true;$('inBtn').hidden=false;return}if(!S.profile){$('nav').innerHTML='';m.innerHTML=vOnb();$('addBtn').hidden=true;$('inBtn').hidden=true;return}$('addBtn').hidden=false;$('inBtn').hidden=true;
+function render(){nav();var m=$('main');if(CLOUD_ON&&!U){$('nav').innerHTML='';m.innerHTML=vPreview();$('addBtn').hidden=true;$('inBtn').hidden=false;return}if(!S.profile){$('nav').innerHTML='';m.innerHTML=vOnb();$('addBtn').hidden=true;$('inBtn').hidden=true;return}$('addBtn').hidden=false;$('inBtn').hidden=true;if(GS){m.innerHTML=vGS();return}
 if(S.tab==='saves')m.innerHTML=vSaves();
 else if(S.tab==='review'){if(weekOver())closeWeek();m.innerHTML=vReview(),bindReview()}
 else if(S.tab==='plan')m.innerHTML=vPlan();
@@ -170,7 +173,7 @@ return h+'<div class="row" style="margin-top:12px"><button class="btn sm" data-e
 function readEdit(){if(EDIT==null||!EDITD)return;var g=function(i){var e=$(i);return e?e.value:null};var t=g('ed-title');if(t!==null)EDITD.title=t;var c=g('ed-cat');if(c!==null)EDITD.cat=c;var sm=g('ed-sum');if(sm!==null)EDITD.sum=sm;var ig=g('ed-ing');if(ig!==null)EDITD.ing=ig;var as=document.querySelectorAll('.ed-act'),ms=document.querySelectorAll('.ed-min');EDITD.parts=EDITD.parts.map(function(p,i){return {act:as[i]?as[i].value:p.act,min:ms[i]?(+ms[i].value||p.min):p.min,sum:p.sum}})}
 function vSaves(){var tc=themeCount(),top=Object.keys(tc).sort(function(a,b){return tc[b]-tc[a]})[0];
 var h='<h2>Your saves</h2><p class="mute">'+S.saves.length+' saved. Each save can hold several actions. Review them each week and pick a few saves to work from.</p>';
-h+=vJust();if(!S.saves.length)h+='<div class="empty"><p class="mute">Nothing saved yet. Tap Add a save to start.</p></div>';if(tc[top]>=3)h+='<div class="item"><strong>Pattern:</strong> you saved '+tc[top]+' posts about '+esc(top)+'. Your plan can turn that into a rep goal.</div>';
+h+=vJust()+vGoalDoor();if(!S.saves.length)h+='<div class="empty"><p class="mute">Nothing saved yet. Tap Add a save to start, or start from a goal.</p>'+((S.goal&&S.goal.status==='active')?'':'<button class="btn ghost" data-gsdoor="1" style="margin-top:10px">Start from a goal</button>')+'</div>';if(tc[top]>=3)h+='<div class="item"><strong>Pattern:</strong> you saved '+tc[top]+' posts about '+esc(top)+'. Your plan can turn that into a rep goal.</div>';
 S.saves.slice().sort(function(a,b){return b.id-a.id}).forEach(function(s){
 if(EDIT===s.id&&EDITD){h+=vEditSave(s);return}
 var ps=partsOf(s);
@@ -211,7 +214,7 @@ function fitScore(s){var f=(S.profile&&S.profile.focus)||[],sc=0;f.forEach(funct
 function budgetMins(){return Math.round(((S.profile&&S.profile.hours)||3)*60)}
 function picksMin(){return picks().slice(0,S.size).reduce(function(a,s){return a+(+partsOf(s)[0].min||s.min||15)},0)}
 function goalBudget(){var b=budgetMins();return Math.max(Math.round(b*0.3),b-picksMin())}
-var MAXOPEN=14,ADDCAP=3,ADJMAX=2,ADJCHG=3,FLASH='',JUST=null,STIP=false,NT=null,REC=null,RECLOAD=false,RECERR=false,FLUSHING=false,RS=false;
+var MAXOPEN=14,ADDCAP=3,ADJMAX=2,ADJCHG=3,FLASH='',JUST=null,STIP=false,NT=null,REC=null,RECLOAD=false,RECERR=false,FLUSHING=false,RS=false,STATS,GS=null,GSTOP=false;
 function saveById(id){return S.saves.filter(function(x){return x.id===id})[0]}
 function sidOf(x){return +String(x.id).split('_')[0].slice(1)}
 function planSaveIds(){var o=[];(S.plan||[]).forEach(function(x){if(x.goal)return;var n=sidOf(x);if(n&&o.indexOf(n)<0)o.push(n)});return o}
@@ -243,7 +246,7 @@ arr.forEach(function(it,b){var i=Math.min(n-1,best+b*gp);it.day=sl[i];cnt[i]++;l
 lastI[k]=Math.min(n-1,best+(m-1)*gp);exN[k]=(exN[k]||0)+m})}
 function dayIdx(it){var b=(new Date(S.wk||Date.now()).getDay()+6)%7,i=DAYS.indexOf(it.day);return i<0?9:(i-b+7)%7}
 function itemFit(x){if(x.goal)return 0;var s=saveById(sidOf(x));return s?fitScore(s):0}
-function mkItem(s,ps,k){var p=ps[k];return {id:'p'+s.id+'_'+k,t:s.title,step:p.act||s.act,note:ps.length>1?(p.sum||''):'',part:ps.length>1?('Action '+(k+1)+' of '+ps.length):'',min:+p.min||s.min,ing:(k===0)?(s.ing||null):null,link:s.link||null,miss:null,done:false}}
+function mkItem(s,ps,k){var p=ps[k],o={id:'p'+s.id+'_'+k,t:s.title,step:p.act||s.act,note:ps.length>1?(p.sum||''):'',part:ps.length>1?('Action '+(k+1)+' of '+ps.length):'',min:+p.min||s.min,ing:(k===0)?(s.ing||null):null,link:s.link||null,miss:null,done:false};if(s.goalId)o.goalId=s.goalId;return o}
 function leftParts(s){var ps=partsOf(s).slice(0,6),have={},ks=[];(S.plan||[]).forEach(function(x){have[x.id]=1});ps.forEach(function(p,k){if(!have['p'+s.id+'_'+k])ks.push(k)});return {ps:ps,ks:ks}}
 function hrsTxt(){var h=(S.profile&&S.profile.hours)||3;return h+' hour'+(h>1?'s':'')}
 function build(){var bt=$('build');if(bt){bt.disabled=true;bt.textContent='Building your week...'}
@@ -304,7 +307,7 @@ var rm=a.rm||[];S.plan=S.plan.filter(function(x){return isSet(x)||rm.indexOf(x.i
 var op=S.plan.filter(function(x){return !x.goal&&!isSet(x)});
 place(interleave(op),[],(S.profile&&S.profile.style)||'daily');
 S.adjN=(S.adjN||0)+1;S.adj=null;FLASH='Plan updated.';save();render()}
-function profLine(){var p=S.profile||{},h=p.hours;return (p.focus||[]).join(', ')+'. '+(h===1?'About 1 hour':h===5?'5+ hours':h+' hours')+' a week. '+(p.style==='weekly'?'One bigger weekly push.':'Small daily steps.')}
+function profLine(){var p=S.profile||{},h=p.hours;return ((p.focus||[]).join(', ')||'No focus chosen')+'. '+(h===1?'About 1 hour':h===5?'5+ hours':h+' hours')+' a week. '+(p.style==='weekly'?'One bigger weekly push.':'Small daily steps.')}
 function vGoals(){var h='<div style="text-align:left;margin-top:20px"><h3>Goals for this week</h3>';
 (S.goals||[]).forEach(function(g,i){h+='<div class="item"><strong>'+esc(g.title)+'</strong><p class="mute">'+esc(g.target)+' '+esc(g.metric)+' by '+esc(g.deadline)+'</p><button class="btn ghost sm" data-grm="'+i+'" style="margin-top:8px">Remove</button></div>'});
 if(SUGG==='loading')h+='<p class="mute">Thinking about your week...</p>';
@@ -321,7 +324,7 @@ h+='</div><h3>How much time can you give this each week?</h3><div class="chips">
 [[1,'About 1 hour'],[3,'3 hours'],[5,'5+ hours']].forEach(function(o){h+=ch(OB.hours===o[0],'data-obh',o[0],o[1])});
 h+='</div><h3>How do you like to work?</h3><div class="chips">';
 [['daily','Small daily steps'],['weekly','One bigger weekly push']].forEach(function(o){h+=ch(OB.style===o[0],'data-obs',o[0],o[1])});
-return h+'</div><button class="btn" id="obdone" style="margin-top:14px"'+((OB.focus.length&&OB.hours&&OB.style)?'':' disabled')+'>'+(PRE?'Save changes':'Start my week')+'</button>'+(PRE?' <button class="btn ghost" id="obcancel" style="margin-top:14px">Cancel</button>':'')}
+return h+'</div><button class="btn" id="obdone" style="margin-top:14px"'+((OB.focus.length&&OB.hours&&OB.style)?'':' disabled')+'>'+(PRE?'Save changes':'Start my week')+'</button>'+(PRE?' <button class="btn ghost" id="obcancel" style="margin-top:14px">Cancel</button>':'<p class="mute" style="margin-top:22px">Not sure yet?</p><button class="btn ghost" data-gsdoor="skip">Skip setup and start from a goal</button>')}
 function vPlan(){if(!S.plan)return '<div class="empty"><h2>No plan yet</h2><p class="mute" style="margin:6px 0 16px">Pick saves in your weekly review first.</p><button class="btn" data-t="review">Start review</button></div>';
 var left=S.plan.filter(function(x){return !isSet(x)}),aside=S.plan.filter(function(x){return !isDone(x)&&!!x.out});
 if(!left.length)return '<div class="empty"><h2>'+(aside.length?'All handled this week':'All done this week')+'</h2><p class="mute" style="margin:6px 0 16px">'+(aside.length?'Everything is done or set aside. ':'Every action is finished. ')+'Add another save to this week, or start next week early.</p><div class="row" style="justify-content:center;flex-wrap:wrap"><button class="btn" data-t="saves">Add more to this week</button><button class="btn ghost" id="nextwk">Start next week</button><button class="btn ghost" data-t="progress" data-pt="done">Completed actions</button></div></div>'+vAside(aside);
@@ -365,9 +368,11 @@ var r=recOf(it,closing);r.v=(S.rv=(S.rv||0)+1);S.rq=(S.rq||[]).filter(function(x
 if(!S.recFrom)S.recFrom=Date.now();
 if(!noFlush){save();flushRecs()}}
 function finalizeRecs(){(S.plan||[]).forEach(function(it){recQueue(it,true,true)});flushRecs()}
-function flushRecs(){if(!window.cloud||!window.cloud.putRec||!U||DEL||RS||FLUSHING)return;var q=(S.rq||[]).slice();if(!q.length)return;FLUSHING=true;
+function flushRecs(){if(!window.cloud||!window.cloud.putRec||!U||DEL||RS||FLUSHING)return;
+var q=(S.gq||[]).map(function(x){return {g:1,x:x}}).concat((S.rq||[]).map(function(x){return {g:0,x:x}}));if(!q.length)return;FLUSHING=true;
 (function next(i){if(i>=q.length){FLUSHING=false;save();return}
-window.cloud.putRec(q[i]).then(function(){S.rq=(S.rq||[]).filter(function(x){return !(x.id===q[i].id&&x.v===q[i].v)});next(i+1)}).catch(function(){FLUSHING=false})})(0)}
+var it=q[i],pr=it.g?window.cloud.putGoal(it.x):window.cloud.putRec(it.x);
+pr.then(function(){if(it.g)S.gq=(S.gq||[]).filter(function(x){return !(x.id===it.x.id&&x.v===it.x.v)});else S.rq=(S.rq||[]).filter(function(x){return !(x.id===it.x.id&&x.v===it.x.v)});next(i+1)}).catch(function(){FLUSHING=false})})(0)}
 function outcomeSet(id,kind){var it=(S.plan||[]).filter(function(x){return x.id===id})[0];if(!it||isDone(it))return;
 var n=$('ntNote'),note=n?n.value.trim().slice(0,140):'',sel=$('ntDay'),to=sel?sel.value:'';
 if(kind==='move'){if(!to)return;if(to==='__next'){it.out='rescheduled';evAdd(it,'rescheduled',{to:'next week'});FLASH='Moved to next week. You can add it back from its save then.'}else{var f=it.day;it.day=to;evAdd(it,'moved',{from:f,to:to});FLASH='Moved to '+to+'.'}}
@@ -414,6 +419,111 @@ function resetAll(){ACC.rsBusy=true;ACC.rsErr='';ACC.rsMsg='';RS=true;clearTimeo
 whenIdle(function(){var p=(window.cloud&&window.cloud.resetRecs&&U)?window.cloud.resetRecs():Promise.resolve();
 p.then(function(){progressWipe();ACC.rsBusy=false;ACC.rsConfirm=false;ACC.rsMsg='Your progress was reset. Your saves and settings were kept, and everything you saved is back in Review.';RS=false;save();render()})
 .catch(function(){ACC.rsBusy=false;RS=false;ACC.rsErr='Could not reset right now. Nothing was changed. Check your connection and try again.';render()})},0)}
+function vStats(){var t=STATS;if(!t)return '';var g=t.goals||{},bt=g.byType||{},LB={skill:'Develop a skill',concept:'Learn a concept',communication:'Improve communication',consistency:'Become consistent',fitness:'Get fitter',project:'Finish a project',other:'Other'},h='<div class="item"><h3>App stats</h3><p class="mute" style="margin-top:4px">Only you can see this. Totals only, never anyone\'s content. Days are UTC.</p>';
+h+='<p style="margin-top:10px"><strong>'+t.accounts+'</strong> accounts with data</p>';
+h+='<p><strong>'+(g.usersWithGoal||0)+'</strong> accounts have created a goal ('+(g.total||0)+' goals, '+(g.active||0)+' active)</p>';
+h+='<p><strong>'+((t.entitlements||{}).starterUsed||0)+'</strong> starter weeks used, <strong>'+((t.entitlements||{}).pro||0)+'</strong> paid accounts</p>';
+h+='<details style="margin-top:10px"><summary style="cursor:pointer;color:var(--pri);font-weight:700">Goals by type</summary><ul style="padding-left:18px;margin-top:8px">';
+Object.keys(bt).forEach(function(k){h+='<li>'+(LB[k]||esc(k))+': '+bt[k]+'</li>'});
+h+='</ul></details>';
+var pd=Object.keys(g.perDay||{}).sort().reverse();
+h+='<details style="margin-top:6px"><summary style="cursor:pointer;color:var(--pri);font-weight:700">Goals created per day (14 days)</summary><ul style="padding-left:18px;margin-top:8px">';
+if(!pd.length)h+='<li>None yet</li>';pd.forEach(function(k){h+='<li>'+esc(k)+': '+g.perDay[k]+'</li>'});
+h+='</ul></details>';
+var mt=(t.ai||{}).modeTotals||{};
+h+='<details style="margin-top:6px"><summary style="cursor:pointer;color:var(--pri);font-weight:700">AI requests (14 days)</summary><ul style="padding-left:18px;margin-top:8px"><li>Reading saves: '+(mt.extract||0)+'</li><li>Goal setups: '+(mt.goal_setup||0)+'</li><li>Weekly plans: '+(mt.plan||0)+'</li><li>Goal ideas: '+(mt.goals||0)+'</li></ul><p class="mute">Accounts exempt from limits are not counted.</p></details>';
+var ds=((t.ai||{}).days||[]).slice(0,7);
+h+='<details style="margin-top:6px"><summary style="cursor:pointer;color:var(--pri);font-weight:700">People using the AI per day</summary><ul style="padding-left:18px;margin-top:8px">';
+if(!ds.length)h+='<li>No data yet</li>';ds.forEach(function(r){h+='<li>'+esc(r.day)+': '+r.users+' people, '+r.requests+' requests</li>'});
+return h+'</ul></details></div>'}
+var GT=[{k:'skill',l:'Develop a skill',d:'Get good at something with practice',cat:'Learn',ph:'For example: play guitar, edit videos, cook better'},
+{k:'concept',l:'Learn a concept',d:'Understand an idea or subject',cat:'Learn',ph:'For example: how compound interest works'},
+{k:'communication',l:'Improve communication',d:'Speak, write or listen better',cat:'Mindset',ph:'For example: speak up more in meetings'},
+{k:'consistency',l:'Become consistent',d:'Build a habit that sticks',cat:'Mindset',ph:'For example: read a little every day'},
+{k:'fitness',l:'Get fitter',d:'Move more or build strength',cat:'Train',ph:'For example: run a 5K, do a first pull up'},
+{k:'project',l:'Finish a project',d:'Make something and get it done',cat:'Try',ph:'For example: launch a small website'}],
+GL=[['new','Brand new'],['some','Some experience'],['returning','Getting back into it']],GHR=[1,2,3,5,8];
+function gType(k){return GT.filter(function(t){return t.k===k})[0]}
+function gch(on,at,v,l){return '<button class="chip" '+at+'="'+esc(v)+'" aria-pressed="'+on+'">'+esc(l)+'</button>'}
+function ymd(t){var d=new Date(t);return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2)}
+function gq(g){var r={id:g.id,v:(S.rv=(S.rv||0)+1),data:{type:g.type,title:g.title,what:g.what,level:g.level,hours:g.hours,by:g.by||'',finished:g.finished||'',status:g.status,created:g.created,updated:Date.now()}};S.gq=(S.gq||[]).filter(function(x){return x.id!==r.id}).concat([r]).slice(-20)}
+function gsOpen(){GS={step:'type',type:'',what:'',level:'',hours:0,by:'',answer:'',q:'',rounds:0,proposal:null,err:'',fields:{},from:'time'};render();window.scrollTo(0,0)}
+function gsClose(){GS=null;render();window.scrollTo(0,0)}
+function gsRead(){if(!GS)return;var e;if((e=$('gsWhat')))GS.what=e.value.slice(0,300);if((e=$('gsBy')))GS.by=e.value;if((e=$('gsAns')))GS.answer=e.value.slice(0,300);
+if(GS.proposal&&$('gsTitle')){GS.proposal.title=$('gsTitle').value;GS.proposal.actions.forEach(function(a,i){var st=$('gsStep'+i),mn=$('gsMin'+i);if(st)a.step=st.value;if(mn)a.minutes=+mn.value})}}
+function gsWhy(e){if(e&&e.status===429)return e.code==='daily_limit'?'You have reached today\'s AI limit. It resets tomorrow.':'Too many requests for now. Try again in a little while.';if(e&&e.status===401)return 'Please sign in again.';if(e&&e.status===400)return 'Check your answers and try again.';if(e&&e.status===503)return 'Goal setup is not available right now.';return 'Could not make your plan right now. Check your connection and try again.'}
+function gsNext(){var f={};if((GS.what||'').trim().length<3)f.what='Tell us what you want to do, in a few words.';if(!GS.level)f.level='Choose where you are starting from.';GS.fields=f;if(Object.keys(f).length){render();return}GS.step='time';GS.err='';render();window.scrollTo(0,0)}
+function gsMake(){var f={};
+if((GS.what||'').trim().length<3)f.what='Tell us what you want to do, in a few words.';
+if(!GS.level)f.level='Choose where you are starting from.';
+if(!GS.hours)f.hours='Choose how much time you can give each week.';
+if(Object.keys(f).length){GS.fields=f;GS.step=(f.what||f.level)?'what':'time';render();return}
+GS.fields={};GS.err='';GS.from=GS.step==='question'?'question':'time';
+var ans=GS.step==='question'?('Q: '+GS.q+' A: '+(GS.answer||'')):'';
+GS.step='busy';render();
+ai('goal_setup',{type:GS.type,what:GS.what.trim(),level:GS.level,hours:GS.hours,by:GS.by||'',answer:ans}).then(function(j){if(!GS)return;
+if(j.status==='plan'){GS.proposal={title:j.title,finished:j.finished_looks_like,assumptions:j.assumptions||[],actions:(j.actions||[]).map(function(a){return {step:a.step,minutes:a.minutes,detail:a.detail||''}})};GS.step='review'}
+else if(j.status==='question'){GS.rounds++;if(GS.rounds>=3){GS.step='what';GS.err='We still need a little more detail. Add it to your description and try again.'}else{GS.q=j.question;GS.step='question'}}
+else{GS.q=j.question;GS.step='decline'}
+render();window.scrollTo(0,0)}).catch(function(e){if(!GS)return;if(e&&(e.status===402||e.code==='paid_required'))GS.step='paid';else{GS.err=gsWhy(e);GS.step=GS.from}render();window.scrollTo(0,0)})}
+function gsApprove(){var p=GS.proposal,errs=[];
+if((p.title||'').trim().length<3)errs.push('Give your goal a short title.');
+p.actions.forEach(function(a,i){if((a.step||'').trim().length<5)errs.push('Action '+(i+1)+' needs a clear step.')});
+var tot=p.actions.reduce(function(x,a){return x+(+a.minutes||0)},0),cap=Math.floor(GS.hours*60);
+if(tot>cap)errs.push('These add up to '+tot+' minutes, more than your '+cap+' minutes a week. Shorten or remove an action.');
+if(errs.length){GS.err=errs.join(' ');render();window.scrollTo(0,0);return}
+goalCreate()}
+function addGoalWeek(sv){if(S.plan&&S.plan.length&&weekOver())closeWeek();
+var ps=partsOf(sv).slice(0,6),room=MAXOPEN-openItems().length,n=Math.min(ps.length,Math.max(0,room));if(n<=0)return 0;
+var items=[],k,style=(S.profile&&S.profile.style)||'daily';for(k=0;k<n;k++)items.push(mkItem(sv,ps,k));
+if(weekOpen()){place(items,openItems(),style);S.plan=S.plan.concat(items)}
+else{S.wk=Date.now();place(items,[],style);S.plan=items;S.groc={};S.adjN=0;S.adj=null;S.planNote=''}
+S.dec[sv.id]='used';return n}
+function goalCreate(){var p=GS.proposal,t=gType(GS.type),now=Date.now();
+var goal={id:'g'+now.toString(36),type:GS.type,title:p.title.trim().slice(0,80),what:GS.what.trim().slice(0,300),level:GS.level,hours:GS.hours,by:GS.by||'',finished:String(p.finished||'').slice(0,200),status:'active',created:now};
+var parts=p.actions.map(function(a){return {act:a.step.trim().slice(0,140),min:Math.round(+a.minutes)||15,sum:String(a.detail||'').slice(0,200)}});
+var sv={id:nextId(),cat:t.cat,title:goal.title,src:'goal',theme:t.k,sum:goal.finished,ing:null,act:parts[0].act,parts:parts,slides:0,min:parts.reduce(function(x,y){return x+y.min},0),link:null,miss:null,goalId:goal.id};
+S.goal=goal;gq(goal);S.saves.push(sv);
+var n=addGoalWeek(sv);GS=null;
+FLASH=n?'Your first week is ready. '+n+' action'+(n===1?'':'s')+' added to this week.':'Your goal is saved. This week is already full, so add its actions from the Saves tab when there is room.';
+save();flushRecs();go('plan',true)}
+function vGS(){var g=GS,t=gType(g.type),h='';
+function fe(k){return g.fields[k]?'<p class="warn">'+esc(g.fields[k])+'</p>':''}
+var back=function(to,l){return '<button class="btn ghost sm" data-gs="'+to+'">'+l+'</button>'};
+if(g.step==='type'){h=back('close','Cancel')+'<h2 style="margin-top:14px">Start from a goal</h2><p class="mute">Pick the kind of goal. Two quick questions, then your first week of small actions.</p>';GT.forEach(function(x){h+='<button class="gtype" data-gstype="'+x.k+'"><strong>'+esc(x.l)+'</strong><span class="mute">'+esc(x.d)+'</span></button>'})}
+else if(g.step==='what'){h=back('type','Back')+'<h2 style="margin-top:14px">'+esc(t.l)+'</h2>'+(g.err?'<p class="warn">'+esc(g.err)+'</p>':'')+'<h3 style="margin-top:14px">What exactly?</h3><p class="mute">In your own words. Be as specific as you can.</p><textarea id="gsWhat" class="ntin" maxlength="300" placeholder="'+esc(t.ph)+'" style="width:100%;margin-top:8px">'+esc(g.what)+'</textarea>'+fe('what')+'<h3 style="margin-top:14px">Where are you starting from?</h3><div class="chips">';
+GL.forEach(function(o){h+=gch(g.level===o[0],'data-gslevel',o[0],o[1])});h+='</div>'+fe('level')+'<button class="btn" data-gs="toTime" style="margin-top:14px">Next</button>'}
+else if(g.step==='time'){var now=Date.now();h=back('what','Back')+'<h2 style="margin-top:14px">How much time, and by when?</h2>'+(g.err?'<p class="warn">'+esc(g.err)+'</p>':'')+'<h3 style="margin-top:14px">Time each week</h3><div class="chips">';
+GHR.forEach(function(x){h+=gch(g.hours===x,'data-gshours',x,x===1?'1 hour':x+' hours')});h+='</div>'+fe('hours')+'<h3 style="margin-top:14px">Target date (optional)</h3><input type="date" id="gsBy" class="ntin" min="'+ymd(now)+'" max="'+ymd(now+365*864e5)+'" value="'+esc(g.by)+'" aria-label="Target date"><p class="mute" style="margin-top:14px">Your first week is planned within that time. You can change anything before it is added.</p><button class="btn" data-gs="make" style="margin-top:6px">Make my first week</button>'}
+else if(g.step==='busy'){h='<h2>Making your first week...</h2><p class="mute">This takes a few seconds.</p>'}
+else if(g.step==='question'){h=back('time','Back')+'<h2 style="margin-top:14px">One quick question</h2>'+(g.err?'<p class="warn">'+esc(g.err)+'</p>':'')+'<p style="margin-top:10px">'+esc(g.q)+'</p><textarea id="gsAns" class="ntin" maxlength="300" style="width:100%;margin-top:8px" aria-label="Your answer">'+esc(g.answer)+'</textarea><button class="btn" data-gs="answer" style="margin-top:12px">Continue</button>'}
+else if(g.step==='decline'){h='<h2>We cannot plan this one</h2><p style="margin-top:10px">'+esc(g.q)+'</p><div class="row" style="margin-top:14px;gap:8px">'+back('what','Change my goal')+back('close','Close')+'</div>'}
+else if(g.step==='paid'){h='<h2>Your free starter week is used</h2><p class="mute" style="margin-top:10px">Setting up more goals is part of the paid plan, which is not open yet. Your saves, plans and progress all keep working.</p><button class="btn ghost" data-gs="close" style="margin-top:14px">Close</button>'}
+else if(g.step==='review'){var p=g.proposal,tot=p.actions.reduce(function(x,a){return x+(+a.minutes||0)},0),cap=Math.floor(g.hours*60);
+h=back('what','Back')+'<h2 style="margin-top:14px">Your first week</h2><p class="mute">Edit anything, then approve. Nothing is added until you do.</p>'+(g.err?'<p class="warn">'+esc(g.err)+'</p>':'')+'<label class="mute" for="gsTitle" style="display:block;margin-top:14px">Goal title</label><input id="gsTitle" class="ntin" maxlength="80" value="'+esc(p.title)+'" style="width:100%">';
+h+='<p style="margin-top:12px"><strong>Finished looks like:</strong> '+esc(p.finished)+'</p>';
+if(p.assumptions.length){h+='<p class="mute" style="margin-top:8px">We assumed:</p><ul style="padding-left:18px;margin:4px 0">';p.assumptions.forEach(function(a){h+='<li class="mute">'+esc(a)+'</li>'});h+='</ul>'}
+p.actions.forEach(function(a,i){var o='',m;for(m=5;m<=90;m+=5)o+='<option value="'+m+'"'+(+a.minutes===m?' selected':'')+'>'+m+' min</option>';if(+a.minutes%5||+a.minutes<5||+a.minutes>90)o='<option value="'+(+a.minutes||15)+'" selected>'+(+a.minutes||15)+' min</option>'+o;
+h+='<div class="item"><label class="mute" for="gsStep'+i+'">Action '+(i+1)+'</label><input id="gsStep'+i+'" class="ntin" maxlength="140" value="'+esc(a.step)+'" style="width:100%;margin-top:6px">'+(a.detail?'<p class="mute" style="margin-top:6px">'+esc(a.detail)+'</p>':'')+'<div class="row sp" style="margin-top:10px"><select id="gsMin'+i+'" class="ntin" aria-label="Minutes for action '+(i+1)+'" style="padding:6px 10px">'+o+'</select>'+(p.actions.length>3?'<button class="btn ghost sm" data-gsrm="'+i+'">Remove</button>':'')+'</div></div>'});
+h+='<p class="mute">'+tot+' of '+cap+' minutes a week</p><button class="btn" data-gs="approve" style="margin-top:10px">Approve and add to this week</button>'}
+return h}
+function vGoalCard(){var g=S.goal,t=gType(g.type);
+return '<div class="item"><div class="row sp"><span class="badge">'+esc(t?t.l:'Goal')+'</span>'+(g.by?'<span class="mute">By '+esc(dfmt(new Date(g.by+'T12:00:00').getTime()))+'</span>':'')+'</div><h3 style="margin-top:8px">'+esc(g.title)+'</h3><p class="mute">'+esc(g.finished)+'</p>'+(GSTOP?'<p style="margin-top:10px"><strong>Stop this goal?</strong> Your saves and records stay.</p><div class="row" style="gap:8px;margin-top:8px"><button class="btn sm" data-goalstop="yes">Yes, stop it</button><button class="btn ghost sm" data-goalstop="no">Keep it</button></div>':'<button class="btn ghost sm" data-goalstop="ask" style="margin-top:10px">Stop this goal</button>')+'</div>'}
+function vGoalDoor(){if(S.goal&&S.goal.status==='active')return vGoalCard();if(!S.saves.length)return '';return '<div class="row sp" style="margin:10px 0"><span class="mute">No post handy?</span><button class="btn ghost sm" data-gsdoor="1">Start from a goal</button></div>'}
+document.addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;
+if(b.dataset.gsdoor){if(b.dataset.gsdoor==='skip'&&!S.profile){S.profile={focus:[],hours:3,style:'daily'};save()}gsOpen()}
+else if(b.dataset.goalstop){if(b.dataset.goalstop==='ask'){GSTOP=true;render()}else if(b.dataset.goalstop==='no'){GSTOP=false;render()}else if(S.goal){S.goal.status='ended';S.goal.updated=Date.now();gq(S.goal);S.goal=null;GSTOP=false;FLASH='Goal stopped. You can start a new one any time.';save();flushRecs();render()}}
+else if(!GS){return}
+else if(b.dataset.gstype){gsRead();GS.type=b.dataset.gstype;GS.step='what';GS.fields={};GS.err='';render();window.scrollTo(0,0)}
+else if(b.dataset.gslevel){gsRead();GS.level=b.dataset.gslevel;render()}
+else if(b.dataset.gshours){gsRead();GS.hours=+b.dataset.gshours;render()}
+else if(b.dataset.gsrm!==undefined){gsRead();GS.proposal.actions.splice(+b.dataset.gsrm,1);render()}
+else if(b.dataset.gs){gsRead();var a=b.dataset.gs;
+if(a==='close')gsClose();
+else if(a==='type'||a==='what'||a==='time'||a==='question'){GS.step=a;GS.err='';render();window.scrollTo(0,0)}
+else if(a==='toTime')gsNext();
+else if(a==='make'||a==='answer')gsMake();
+else if(a==='approve')gsApprove()}});
 function infoBtn(){return '<button class="info" id="streakInfo" aria-expanded="'+STIP+'" aria-controls="streakTip" aria-label="How the weekly streak works">i</button>'}
 function tipHTML(){return '<p class="tip" id="streakTip">A week counts toward your streak when you finish at least half of that week\'s actions or at least 3 of them, whichever is lower. Weeks run Monday to Sunday. One missed week is forgiven per streak.</p>'}
 function vDots(){var now=new Date();now.setHours(0,0,0,0);var mon=new Date(now);mon.setDate(mon.getDate()-((now.getDay()+6)%7));
@@ -539,7 +649,7 @@ var EX=[
 {cat:'Try',title:'Sunrise hike spot near the city',sum:'A trail with parking tips and the best time to go.',act:'Pick a morning this weekend and put it on your calendar.',goal:'Try 1 new place',cur:0,target:1,by:'Sun'},
 {cat:'Mindset',title:'Repetition beats motivation',sum:'A quote about doing the small thing again and again.',act:'Choose one habit and log 5 reps of it this week.',goal:'Log 5 reps',cur:2,target:5,by:'Fri'}];
 var PW=[['Mon','Buy the lemon chicken ingredients','Cook',15],['Wed','Cook lemon chicken and rice','Cook',45],['Fri','Dumbbell back workout','Train',20],['Sat','Redo the compound interest example','Learn',20]];
-function vPreview(){var h='<div style="margin-top:8px"><h2>Turn what you save into what you do</h2><p class="mute">Add a screenshot or caption from a post you saved. Actionably pulls out the steps, picks one next action, and builds your week around it.</p><div class="row" style="margin:14px 0 4px"><button class="btn" data-signin="1">Continue with Google</button><button class="btn ghost" id="tryAdd">Add a save</button></div><p class="warn" id="gerr">'+(LOADERR?'Could not load your saves. Check your Firestore rules, then try again.':'')+'</p><p class="mute" style="margin-top:8px">By continuing you acknowledge the <a href="/privacy.html" target="_blank" rel="noopener">Privacy Policy</a>.</p></div>';
+function vPreview(){var h='<div style="margin-top:8px"><h2>Turn what you save into what you do</h2><p class="mute">Add a screenshot or caption from a post you saved. Actionably pulls out the steps, picks one next action, and builds your week around it.</p><div class="row" style="margin:14px 0 4px"><button class="btn" data-signin="1">Continue with Google</button><button class="btn ghost" id="tryAdd">Add a save</button></div><p class="warn" id="gerr">'+(LOADERR?'Could not load your saves. Check your Firestore rules, then try again.':'')+'</p><p class="mute" style="margin-top:8px">By continuing you acknowledge the <a href="/privacy.html" target="_blank" rel="noopener">Privacy Policy</a>.</p><p class="mute" style="margin-top:6px">No post handy? After you sign in, you can start from a goal instead.</p></div>';
 h+='<h3 style="margin-top:22px">What a save becomes</h3><p class="mute">Examples, one for each kind of save.</p>';
 EX.forEach(function(x){h+='<div class="item"><div class="row sp"><span class="tag '+x.cat+'">'+x.cat+'</span><span class="mute">Example</span></div><h3 style="margin-top:8px">'+x.title+'</h3><p class="mute">'+x.sum+'</p><p style="margin-top:6px"><strong>Next step:</strong> '+x.act+'</p><div style="margin-top:10px"><strong>'+x.cur+' / '+x.target+'</strong> <span class="mute">'+x.goal+' by '+x.by+'</span></div><div class="bar"><i style="width:'+(x.cur/x.target*100)+'%"></i></div></div>'});
 h+='<h3 style="margin-top:22px">A week, built for you</h3><p class="mute">Built from the saves you pick, within the hours you have.</p>';
@@ -561,7 +671,9 @@ else if(ACC.reauth)h+='<p class="mute" style="margin-top:10px">Your saves and pl
 else if(ACC.confirm)h+='<p style="margin-top:10px"><strong>Are you sure?</strong></p><div class="row" style="margin-top:8px"><button class="btn sm" id="delYes" style="background:var(--bad);color:var(--onpri)">Yes, delete everything</button><button class="btn ghost sm" id="delNo">Cancel</button></div>';
 else h+='<button class="btn ghost sm" id="delAsk" style="margin-top:10px;border-color:var(--bad);color:var(--bad)">Delete my account and data</button>';
 if(ACC.err)h+='<p class="warn">'+esc(ACC.err)+'</p>';
-return h+'</div>'}
+h+='</div>';
+if(STATS===undefined&&U&&window.cloud&&window.cloud.stats){STATS=null;window.cloud.stats().then(function(x){STATS=x;render()}).catch(function(){STATS=false})}
+return h+vStats()}
 function acctGone(){try{localStorage.removeItem(KEY)}catch(x){}S={tab:'saves',saves:[],dec:{},size:4,plan:null,total:0,reps:0,groc:{}};ACC={confirm:false,busy:false,err:'',reauth:false};U=null;render()}
 function delAccount(re){ACC.busy=true;ACC.err='';DEL=true;clearTimeout(_t);render();
 var p=re?window.cloud.reauthDelete():window.cloud.deleteAll();
@@ -619,7 +731,9 @@ deleteAll:async()=>{const u=auth.currentUser;await purge();await deleteDoc(doc(d
 reauthDelete:async()=>{const u=auth.currentUser;await reauthenticateWithPopup(u,new GoogleAuthProvider());await deleteUser(u)},
 save:(st)=>setDoc(doc(db,"actionablyApp",auth.currentUser.uid),{state:JSON.stringify(st),updated:Date.now()}),
 resetRecs:()=>acct("reset"),
+stats:async()=>{const t=await auth.currentUser.getIdToken();const r=await fetch("/api/stats",{headers:{authorization:"Bearer "+t}});if(r.status===403||r.status===401)return false;if(!r.ok)throw new Error("stats");return r.json()},
 putRec:(r)=>setDoc(doc(db,"growth",auth.currentUser.uid,"records",r.id),r.data),
+putGoal:(r)=>setDoc(doc(db,"growth",auth.currentUser.uid,"goals",r.id),r.data),
 listRecs:async()=>{const s=await getDocs(query(collection(db,"growth",auth.currentUser.uid,"records"),orderBy("sched","desc"),limit(800)));return s.docs.map(d=>Object.assign({id:d.id},d.data()))}
 };
 onAuthStateChanged(auth,async(u)=>{let data=null;

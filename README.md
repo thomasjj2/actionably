@@ -23,9 +23,11 @@ Instagram has no public API for saved posts, so saves come in as screenshots or 
 ```
 index.html                  frontend
 netlify/functions/ai.mjs         AI function (extract, plan, goals)
-netlify/functions/account.mjs    Deletes data browsers cannot delete: reset (action records) and purge (records plus usage counts)
+netlify/functions/account.mjs    Deletes data browsers cannot delete: reset (action records) and purge (records, usage counts, plan status)
+netlify/functions/stats.mjs      Owner only totals (accounts, goals by type, starter weeks, AI use). Never returns user content
+js/goals.mjs                     Goal setup input checks, AI response schema and proposal validation. Used by the server and covered by tests
 js/progress.mjs                  Progress calculations (completion rate, weekly series, trend). Loaded by the app and covered by tests
-tests/progress.test.mjs          Unit tests for the calculations. Run with: npm test
+tests/*.test.mjs                 Unit tests for the calculations and goal validation. Run with: npm test
 package.json                function dependency (firebase-admin) and the test script
 netlify.toml                Netlify build config
 firestore.rules             Firestore security rules
@@ -53,6 +55,8 @@ firestore.rules             Firestore security rules
 | `FIREBASE_SERVICE_ACCOUNT_JSON` | For the daily cap and for account deletion | Service account key for this Firebase project (Project settings, Service accounts, Generate new private key). Paste the raw JSON only. Mark as secret |
 | `DAILY_TOKEN_LIMIT` | No | Tokens per user per day. Defaults to 100000, and 0 turns the cap off |
 | `UNLIMITED_EMAILS` | No | Comma separated emails that skip the hourly and daily limits |
+| `PRO_EMAILS` | No | Comma separated verified emails treated as paid, so you can test paid features before payments exist |
+| `ADMIN_EMAILS` | For stats | Comma separated verified emails allowed to see the stats card in My Account |
 | `ANTHROPIC_MODEL` | No | Defaults to `claude-sonnet-5-5` |
 
 3. After the first deploy, add your Netlify domain in Firebase under Authentication, Settings, Authorized domains. Google sign in fails without it.
@@ -77,3 +81,12 @@ After changing `firestore.rules`, publish the new rules in the Firebase console 
 Reset all progress (My Account) deletes a user's records through `/api/account` with the `reset` action, then clears weekly history, completed actions, streak and this week's plan in the app. Saves and settings are kept. AI usage counts are deliberately not reset.
 
 Deleting an account calls `/api/account` with the `purge` action first, which needs `FIREBASE_SERVICE_ACCOUNT_JSON`. Without it, deletion is blocked so records are never left behind.
+
+## Goal setup and the starter week
+
+`/api/ai` has a `goal_setup` mode. A user picks a goal type, says what they want, where they are starting from, and their time per week. Claude proposes a first week of 3 to 6 actions or asks one clarifying question, and the server checks the reply (`js/goals.mjs`) before anything is shown. Free accounts get one starter week, claimed in a database transaction and given back if no plan was produced. Paid status lives in `entitlements/{uid}`, which only the server can write. `PRO_EMAILS` marks test accounts as paid. Structured outputs are used when the model accepts them, with a plain JSON fallback.
+
+## Stats
+
+The owner sees an App stats card in My Account. `/api/stats` only answers for emails in `ADMIN_EMAILS` and returns counts and totals, never anything a user wrote.
+
