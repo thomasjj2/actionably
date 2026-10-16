@@ -1,8 +1,10 @@
 // Actionably: removes the data that browsers are not allowed to delete themselves.
 // POST /api/account  { "action": "purge" | "reset" }
-// reset: deletes everything under growth/{uid} (action records and anything added later). Used by Reset all progress.
+// reset: deletes the action records under growth/{uid}/records. Goals are kept. Used by Reset all progress.
 //        AI usage counts are NOT touched, so a reset cannot be used to get around the daily limit.
-// purge: does the same, and also deletes the per-day AI usage counts for that user. Used when deleting an account;
+// purge: deletes everything under growth/{uid} (records and goals), the per-day AI usage counts and the plan status
+//        document (entitlements/{uid}).
+//        Used when deleting an account;
 //        the browser then deletes the main data document and the sign in account.
 // Env vars: FIREBASE_API_KEY (to verify the sign in) and FIREBASE_SERVICE_ACCOUNT_JSON (to delete).
 import { initializeApp, cert, getApps } from "firebase-admin/app";
@@ -55,8 +57,9 @@ export default async (req) => {
   if (!d) return json({ error: "Deletion is not available right now" }, 503);
 
   try {
-    await d.recursiveDelete(d.doc("growth/" + uid));
+    await d.recursiveDelete(body.action === "purge" ? d.doc("growth/" + uid) : d.collection("growth/" + uid + "/records"));
     if (body.action === "purge") {
+      await d.doc("entitlements/" + uid).delete();
       const snap = await d.collection("aiUsage").where("uid", "==", uid).get();
       for (let i = 0; i < snap.docs.length; i += 400) {
         const batch = d.batch();
