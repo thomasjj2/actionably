@@ -1,8 +1,8 @@
 // Actionably: removes the data that browsers are not allowed to delete themselves.
 // POST /api/account  { "action": "purge" | "reset" }
-// reset: deletes the action records under growth/{uid}/records. Goals are kept. Used by Reset all progress.
+// reset: deletes the action records and check-ins under growth/{uid}. Goals are kept. Used by Reset all progress.
 //        AI usage counts are NOT touched, so a reset cannot be used to get around the daily limit.
-// purge: deletes everything under growth/{uid} (records and goals), the per-day AI usage counts and the plan status
+// purge: deletes everything under growth/{uid} (records, check-ins and goals), the per-day AI usage counts and the plan status
 //        document (entitlements/{uid}).
 //        Used when deleting an account;
 //        the browser then deletes the main data document and the sign in account.
@@ -57,7 +57,12 @@ export default async (req) => {
   if (!d) return json({ error: "Deletion is not available right now" }, 503);
 
   try {
-    await d.recursiveDelete(body.action === "purge" ? d.doc("growth/" + uid) : d.collection("growth/" + uid + "/records"));
+    if (body.action === "purge") {
+      await d.recursiveDelete(d.doc("growth/" + uid));
+    } else {
+      await d.recursiveDelete(d.collection("growth/" + uid + "/records"));
+      await d.recursiveDelete(d.collection("growth/" + uid + "/checkins"));
+    }
     if (body.action === "purge") {
       await d.doc("entitlements/" + uid).delete();
       const snap = await d.collection("aiUsage").where("uid", "==", uid).get();
