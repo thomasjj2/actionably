@@ -90,3 +90,7 @@ Deleting an account calls `/api/account` with the `purge` action first, which ne
 
 The owner sees an App stats card in My Account. `/api/stats` only answers for emails in `ADMIN_EMAILS` and returns counts and totals, never anything a user wrote.
 
+## Starting from a goal
+
+The Saves tab, the empty state and the onboarding screen all offer Start from a goal. The user picks one of six goal types, describes it in their own words with a starting level, then picks weekly time and an optional date. The server proposes a first week (or asks one question), the user edits and approves it, and the actions are added to this week's plan. An approved goal becomes a save with `src: "goal"` and a `goalId`, so the weekly plan, even spacing, outcomes and records all work for it unchanged, and records carry the goal id. One goal can be active at a time. Goals are stored in `growth/{uid}/goals` (browser writes, checked by `firestore.rules`) and queued locally if the connection drops. Reset all progress keeps goals; deleting the account removes them.
+
