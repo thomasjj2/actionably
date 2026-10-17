@@ -94,3 +94,9 @@ The owner sees an App stats card in My Account. `/api/stats` only answers for em
 
 The Saves tab, the empty state and the onboarding screen all offer Start from a goal. The user picks one of six goal types, describes it in their own words with a starting level, then picks weekly time and an optional date. The server proposes a first week (or asks one question), the user edits and approves it, and the actions are added to this week's plan. An approved goal becomes a save with `src: "goal"` and a `goalId`, so the weekly plan, even spacing, outcomes and records all work for it unchanged, and records carry the goal id. One goal can be active at a time. Goals are stored in `growth/{uid}/goals` (browser writes, checked by `firestore.rules`) and queued locally if the connection drops. Reset all progress keeps goals; deleting the account removes them.
 
+## Attaching saves, the goal filter and weekly check-ins
+
+A save can be attached to the active goal from its card in the Saves tab, from the Add a save sheet, or while setting up a goal (up to 5 saves are sent to the AI as titles and summaries only). Attached saves put `goalId` on the plan actions built from them, and their records follow. Detaching clears it going forward. The Growth view can filter the graph and recent actions by goal; earlier weekly summaries have no goal information, so they only appear under All actions.
+
+When a week closes and the active goal had actions in it, the app offers a short check-in: how the plan felt, confidence 1 to 5, up to three obstacles, and an optional note. It can be skipped. Check-ins are stored in `growth/{uid}/checkins` with the id `{goalId}_{week}`, queued locally if the connection drops, deleted by Reset all progress, and counted (never read) in the owner stats. They are the input the weekly review in the next phase will use.
+

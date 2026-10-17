@@ -117,6 +117,7 @@ details summary{min-height:32px}
 <label for="txt">Caption or text</label><textarea id="txt"></textarea>
 <label for="shots">Screenshots</label><input type="file" id="shots" accept="image/*" multiple>
 <label for="lnk">Original link (optional)</label><input type="text" id="lnk" placeholder="https://">
+<div id="forGoalRow" hidden style="margin-top:12px"><label class="mute"><input type="checkbox" id="forGoal"> <span id="forGoalTxt"></span></label></div>
 <div id="sgate" hidden style="margin-top:14px"><div class="item"><strong>Create a free account to keep this save.</strong><p class="mute">We will hold on to what you typed. Sign in and it saves right away. By continuing you acknowledge the <a href="/privacy.html" target="_blank" rel="noopener">Privacy Policy</a>.</p><button class="btn" data-signin="1" style="margin-top:10px">Continue with Google</button><p class="warn" id="gerr2"></p></div></div>
 <p class="warn" id="serr" role="alert"></p><p class="mute" id="shint"></p>
 <div class="row" style="margin-top:14px"><button class="btn" id="saveIt">Save it</button><button class="btn ghost" id="cancel">Cancel</button></div>
@@ -137,7 +138,7 @@ var SEED=[
 ];
 var S={tab:'saves',saves:SEED.slice(),dec:{},size:4,plan:null,total:0,reps:0,groc:{}};
 try{var r=localStorage.getItem(KEY);if(r){var o=JSON.parse(r);if(o&&o.saves)S=o}}catch(e){}
-function norm(){S.tab=S.tab||'saves';S.completed=S.completed||[];S.rq=S.rq||[];S.gq=S.gq||[];S.weeks=S.weeks||[];S.dec=S.dec||{};S.groc=S.groc||{};if(S.plan&&!S.wk)S.wk=Date.now()}norm();
+function norm(){S.tab=S.tab||'saves';S.completed=S.completed||[];S.rq=S.rq||[];S.gq=S.gq||[];S.cq=S.cq||[];S.weeks=S.weeks||[];S.dec=S.dec||{};S.groc=S.groc||{};if(S.plan&&!S.wk)S.wk=Date.now()}norm();
 var LASTSYNC='',SYNCERR=false;
 function cloudStr(){var c={};for(var k in S)if(k!=='tab')c[k]=S[k];return JSON.stringify(c)}
 function syncBar(on){SYNCERR=on;var e=$('syncbar');if(!e)return;e.hidden=!on;e.textContent=on?'Could not save to your account. Your changes are kept on this device and will retry.':''}
@@ -153,11 +154,11 @@ var PT='overview',RM=null,PRE=null,EDIT=null,EDITD=null,EDITERR='',CATS=['Cook',
 function partsOf(s){if(Array.isArray(s.parts)&&s.parts.length)return s.parts;return [{act:s.act,min:s.min,sum:s.sum}]}
 function ago(t){if(!t)return '';var d=new Date(t);return d.toLocaleDateString(undefined,{month:'short',day:'numeric'})}
 function nav(){var T=TABS.slice();if(U)T.push(['account','<span class="mq">My </span>Account']);$('nav').innerHTML=T.map(function(t){return '<button data-t="'+t[0]+'" aria-current="'+(S.tab===t[0])+'">'+t[1]+'</button>'}).join('')}
-function go(t,keep){S.tab=t;EDIT=null;EDITD=null;if(!keep){FLASH='';JUST=null}if(t==='progress')RECLOAD=false;ACC.rsMsg='';save();render();window.scrollTo(0,0)}
+function go(t,keep){S.tab=t;EDIT=null;EDITD=null;if(!keep){FLASH='';JUST=null}if(t==='progress')RECLOAD=false;ACC.rsMsg='';CIDONE=false;save();render();window.scrollTo(0,0)}
 function themeCount(){var c={};S.saves.forEach(function(s){c[s.theme]=(c[s.theme]||0)+1});return c}
 function picks(){return S.saves.filter(function(s){return S.dec[s.id]==='do'})}
 function queue(){return S.saves.filter(function(s){return !S.dec[s.id]||S.dec[s.id]==='later'}).sort(function(a,b){return (S.dec[a.id]==='later'?1:0)-(S.dec[b.id]==='later'?1:0)||b.id-a.id})}
-function render(){nav();var m=$('main');if(CLOUD_ON&&!U){$('nav').innerHTML='';m.innerHTML=vPreview();$('addBtn').hidden=true;$('inBtn').hidden=false;return}if(!S.profile){$('nav').innerHTML='';m.innerHTML=vOnb();$('addBtn').hidden=true;$('inBtn').hidden=true;return}$('addBtn').hidden=false;$('inBtn').hidden=true;if(GS){m.innerHTML=vGS();return}
+function render0(){nav();var m=$('main');if(CLOUD_ON&&!U){$('nav').innerHTML='';m.innerHTML=vPreview();$('addBtn').hidden=true;$('inBtn').hidden=false;return}if(!S.profile){$('nav').innerHTML='';m.innerHTML=vOnb();$('addBtn').hidden=true;$('inBtn').hidden=true;return}$('addBtn').hidden=false;$('inBtn').hidden=true;if(GS){m.innerHTML=vGS();return}
 if(S.tab==='saves')m.innerHTML=vSaves();
 else if(S.tab==='review'){if(weekOver())closeWeek();m.innerHTML=vReview(),bindReview()}
 else if(S.tab==='plan')m.innerHTML=vPlan();
@@ -179,9 +180,9 @@ if(EDIT===s.id&&EDITD){h+=vEditSave(s);return}
 var ps=partsOf(s);
 h+='<div class="item"><div class="row sp"><span class="tag '+s.cat+'">'+s.cat+'</span><span class="mute">'+esc(s.src||'')+'</span></div><h3 style="margin-top:8px">'+esc(s.title)+'</h3><p class="mute">'+esc(s.sum)+'</p>'+(s.slides?'<p class="mute">'+s.slides+' slide'+(s.slides>1?'s':'')+' read</p>':'')
 +'<p style="margin-top:8px"><strong>'+(ps.length>1?ps.length+' actions':'1 action')+'</strong></p><ol class="al">'+ps.map(function(p){return '<li>'+esc(p.act)+' <span class="mute">('+(+p.min||15)+' min)</span></li>'}).join('')+'</ol>'
-+(S.dec[s.id]==='used'?'<p class="mute" style="margin-top:6px">'+(planSaveIds().indexOf(s.id)>=0?'In this week\'s plan.':'Used in a past plan.')+'</p>':'')
++(S.dec[s.id]==='used'?'<p class="mute" style="margin-top:6px">'+(planSaveIds().indexOf(s.id)>=0?'In this week\'s plan.':'Used in a past plan.')+'</p>':'')+goalBadge(s)
 +(s.miss?'<p class="warn">'+esc(s.miss)+'</p>':'')+(s.link?'<p class="mute"><a href="'+esc(s.link)+'" rel="noopener" target="_blank">Original post</a></p>':'')
-+(RM===s.id?'<div class="row" style="margin-top:10px"><span class="mute">Remove this save?</span><button class="btn sm" data-rmyes="'+s.id+'" style="background:var(--bad);color:var(--onpri)">Yes, remove</button><button class="btn ghost sm" data-rmno="1">Cancel</button></div>':'<div class="row" style="margin-top:10px;flex-wrap:wrap">'+(weekOpen()&&leftParts(s).ks.length?'<button class="btn sm" data-aw="'+s.id+'">'+(planSaveIds().indexOf(s.id)>=0?'Add next actions':'Add to this week')+'</button>':'')+'<button class="btn ghost sm" data-ed="'+s.id+'">Edit</button><button class="btn ghost sm" data-rm="'+s.id+'">Remove</button></div>')+'</div>'});
++(RM===s.id?'<div class="row" style="margin-top:10px"><span class="mute">Remove this save?</span><button class="btn sm" data-rmyes="'+s.id+'" style="background:var(--bad);color:var(--onpri)">Yes, remove</button><button class="btn ghost sm" data-rmno="1">Cancel</button></div>':'<div class="row" style="margin-top:10px;flex-wrap:wrap">'+(weekOpen()&&leftParts(s).ks.length?'<button class="btn sm" data-aw="'+s.id+'">'+(planSaveIds().indexOf(s.id)>=0?'Add next actions':'Add to this week')+'</button>':'')+attachBtn(s)+'<button class="btn ghost sm" data-ed="'+s.id+'">Edit</button><button class="btn ghost sm" data-rm="'+s.id+'">Remove</button></div>')+'</div>'});
 return h}
 function vReview(){var q=queue(),n=picks().length,h='<h2>Weekly review</h2><p class="mute">How many saves do you want to work from this week? Each save can bring several actions.</p>'+(S.sizeNote?'<p class="mute">'+esc(S.sizeNote)+'</p>':'')+'<div class="chips" role="group" aria-label="Saves this week">'+[2,4,6].map(function(k){return '<button class="chip" data-size="'+k+'" aria-pressed="'+(S.size===k)+'">'+k+'</button>'}).join('')+'</div>';
 var cap=capLeft(),np=planSaveIds().length;if(np)h+='<p class="mute">'+np+' save'+(np===1?'':'s')+' already in this week\'s plan. Picks are added to it, so your week stays one plan.</p>';
@@ -205,7 +206,7 @@ else if(x.out==='rescheduled'){mv++}
 else if(x.out==='partial'||(x.goal&&(x.cur||0)>0)){pa++;pi.push(nm);md+=x.goal?Math.round(m*Math.min(1,x.cur/x.target)):Math.round(m*.5)}
 else{oi.push(nm)}});
 return {planned:plan.length,done:d,partial:pa,skipped:sk,moved:mv,minPlanned:mp,minDone:md,doneItems:di.slice(0,12),openItems:oi.slice(0,12),partialItems:pi.slice(0,12)}}
-function archiveWeek(){if(!S.plan||!S.plan.length)return null;finalizeRecs();var w=weekStats(S.plan);w.start=S.wk||Date.now();w.end=Date.now();w.size=S.size;S.weeks=(S.weeks||[]).concat([w]).slice(-26);return w}
+function archiveWeek(){if(!S.plan||!S.plan.length)return null;finalizeRecs();ciArm();var w=weekStats(S.plan);w.start=S.wk||Date.now();w.end=Date.now();w.size=S.size;S.weeks=(S.weeks||[]).concat([w]).slice(-26);return w}
 function weekOver(){return !!(S.plan&&S.plan.length&&Date.now()-(S.wk||Date.now())>=7*864e5)}
 function closeWeek(){if(!S.plan)return;pushHistory();var w=archiveWeek();if(w){var L=[2,4,6],i=L.indexOf(S.size);if(i<0)i=1;var den=w.planned-(w.skipped||0)-(w.moved||0),r=den>0?(w.done+.5*(w.partial||0))/den:.75,ni=i;if(r>=1)ni=Math.min(2,i+1);else if(r<.5)ni=Math.max(0,i-1);S.size=L[ni];w.nextSize=S.size;S.sizeNote='Last week you finished '+w.done+' of '+w.planned+' actions. '+(ni>i?'This week goes up to '+S.size+' saves.':ni<i?'This week steps down to '+S.size+' saves.':'This week stays at '+S.size+' saves.')}S.plan=null;S.wk=null;S.groc={};S.adjN=0;S.adj=null;S.planNote='';save()}
 function finish(it){if(S.plan){pushHistory();archiveWeek()}S.plan=it;S.wk=Date.now();S.groc={};S.goals=[];S.sizeNote='';S.adjN=0;S.adj=null;SUGG=null;save();go('plan',true)}
@@ -214,7 +215,7 @@ function fitScore(s){var f=(S.profile&&S.profile.focus)||[],sc=0;f.forEach(funct
 function budgetMins(){return Math.round(((S.profile&&S.profile.hours)||3)*60)}
 function picksMin(){return picks().slice(0,S.size).reduce(function(a,s){return a+(+partsOf(s)[0].min||s.min||15)},0)}
 function goalBudget(){var b=budgetMins();return Math.max(Math.round(b*0.3),b-picksMin())}
-var MAXOPEN=14,ADDCAP=3,ADJMAX=2,ADJCHG=3,FLASH='',JUST=null,STIP=false,NT=null,REC=null,RECLOAD=false,RECERR=false,FLUSHING=false,RS=false,STATS,GS=null,GSTOP=false;
+var MAXOPEN=14,ADDCAP=3,ADJMAX=2,ADJCHG=3,FLASH='',JUST=null,STIP=false,NT=null,REC=null,RECLOAD=false,RECERR=false,FLUSHING=false,RS=false,STATS,GS=null,GSTOP=false,GF='all',CI=null,CIDONE=false;
 function saveById(id){return S.saves.filter(function(x){return x.id===id})[0]}
 function sidOf(x){return +String(x.id).split('_')[0].slice(1)}
 function planSaveIds(){var o=[];(S.plan||[]).forEach(function(x){if(x.goal)return;var n=sidOf(x);if(n&&o.indexOf(n)<0)o.push(n)});return o}
@@ -369,10 +370,10 @@ if(!S.recFrom)S.recFrom=Date.now();
 if(!noFlush){save();flushRecs()}}
 function finalizeRecs(){(S.plan||[]).forEach(function(it){recQueue(it,true,true)});flushRecs()}
 function flushRecs(){if(!window.cloud||!window.cloud.putRec||!U||DEL||RS||FLUSHING)return;
-var q=(S.gq||[]).map(function(x){return {g:1,x:x}}).concat((S.rq||[]).map(function(x){return {g:0,x:x}}));if(!q.length)return;FLUSHING=true;
+var q=[];[['gq','putGoal'],['cq','putCheckin'],['rq','putRec']].forEach(function(g){(S[g[0]]||[]).forEach(function(x){q.push({k:g[0],fn:g[1],x:x})})});if(!q.length)return;FLUSHING=true;
 (function next(i){if(i>=q.length){FLUSHING=false;save();return}
-var it=q[i],pr=it.g?window.cloud.putGoal(it.x):window.cloud.putRec(it.x);
-pr.then(function(){if(it.g)S.gq=(S.gq||[]).filter(function(x){return !(x.id===it.x.id&&x.v===it.x.v)});else S.rq=(S.rq||[]).filter(function(x){return !(x.id===it.x.id&&x.v===it.x.v)});next(i+1)}).catch(function(){FLUSHING=false})})(0)}
+var it=q[i],pr=window.cloud[it.fn]?window.cloud[it.fn](it.x):Promise.resolve();
+pr.then(function(){S[it.k]=(S[it.k]||[]).filter(function(x){return !(x.id===it.x.id&&x.v===it.x.v)});next(i+1)}).catch(function(){FLUSHING=false})})(0)}
 function outcomeSet(id,kind){var it=(S.plan||[]).filter(function(x){return x.id===id})[0];if(!it||isDone(it))return;
 var n=$('ntNote'),note=n?n.value.trim().slice(0,140):'',sel=$('ntDay'),to=sel?sel.value:'';
 if(kind==='move'){if(!to)return;if(to==='__next'){it.out='rescheduled';evAdd(it,'rescheduled',{to:'next week'});FLASH='Moved to next week. You can add it back from its save then.'}else{var f=it.day;it.day=to;evAdd(it,'moved',{from:f,to:to});FLASH='Moved to '+to+'.'}}
@@ -395,8 +396,8 @@ var bh=Math.max(2,Math.round(ch*w.rate));h+='<rect x="'+x+'" y="'+(T+ch-bh)+'" w
 [0,Math.floor(n/2),n-1].forEach(function(i,k){h+='<text x="'+(k===0?L:k===2?W:L+i*bw+bw/2)+'" y="'+(H-8)+'" text-anchor="'+(k===0?'start':k===2?'end':'middle')+'" font-size="10" style="fill:var(--mute)">'+dfmt(ser[i].start)+'</text>'});
 return h+'</svg>'}
 function vGrowth(){var P=window.Progress;if(!P)return '<p class="mute">Loading...</p>';
-var recs=recsFlat(),ser=P.weeklySeries(recs,S.weeks||[],{now:Date.now(),weeks:12,recFrom:S.recFrom||0}),has=ser.some(function(w){return w.rate!==null});
-var h='<h3>Consistency</h3><p class="mute">Your completion rate for each week, worked out from your saved records. Partly done counts as half. Actions you skip on purpose or move to later are left out. Ups and downs are normal.</p>';
+var all=recsFlat(),gl=goalList(all);if(GF!=='all'&&!gl.some(function(x){return x.id===GF}))GF='all';var recs=GF==='all'?all:all.filter(function(r){return r.goalId===GF}),ser=P.weeklySeries(recs,GF==='all'?(S.weeks||[]):[],{now:Date.now(),weeks:12,recFrom:S.recFrom||0}),has=ser.some(function(w){return w.rate!==null});
+var h=goalChips(gl)+'<h3>Consistency</h3><p class="mute">Your completion rate for each week, worked out from your saved records. Partly done counts as half. Actions you skip on purpose or move to later are left out. Ups and downs are normal.</p>';
 if(RECERR)h+='<p class="warn">Some records could not be loaded. Showing what is available.</p>';
 if(!has)return h+'<div class="item"><p class="mute">Your graph appears once a week has records. Mark actions as done, partly done, skipped or moved and they are recorded here.</p></div>';
 h+=chartSVG(ser);
@@ -411,7 +412,7 @@ h+='<div class="item" style="margin-top:14px"><h3>Last 4 weeks</h3><p class="mut
 var rc=recs.slice().sort(function(a,b){return (b.sched||0)-(a.sched||0)}).slice(0,12),cw=wkKey(Date.now());
 if(rc.length){h+='<h3 style="margin-top:18px">Recent actions</h3>';rc.forEach(function(r){var lab=(r.outcome==='pending'&&r.sched&&wkKey(r.sched)<cw)?'missed':r.outcome;h+='<div class="item"><div class="row sp"><span class="badge">'+esc(OUTL[lab]||lab)+'</span><span class="mute">'+dfmt(r.sched)+'</span></div><p style="margin-top:6px">'+esc(r.title||'')+'</p>'+(r.note?'<p class="mute">'+esc(r.note)+'</p>':'')+'</div>'})}
 return h}
-function progressWipe(){S.plan=null;S.wk=null;S.groc={};S.weeks=[];S.completed=[];S.total=0;S.reps=0;S.history=[];S.goals=[];S.sizeNote='';S.size=4;S.sw={};S.swInit=1;S.best=0;S.recFrom=0;S.rq=[];S.rv=0;S.gseq=0;S.adj=null;S.adjN=0;S.planNote='';
+function progressWipe(){S.ci=null;S.cq=[];CI=null;CIDONE=false;GF='all';S.plan=null;S.wk=null;S.groc={};S.weeks=[];S.completed=[];S.total=0;S.reps=0;S.history=[];S.goals=[];S.sizeNote='';S.size=4;S.sw={};S.swInit=1;S.best=0;S.recFrom=0;S.rq=[];S.rv=0;S.gseq=0;S.adj=null;S.adjN=0;S.planNote='';
 var nd={};Object.keys(S.dec||{}).forEach(function(k){if(S.dec[k]==='drop')nd[k]=S.dec[k]});S.dec=nd;
 REC=null;RECLOAD=false;RECERR=false;NT=null;JUST=null;FLASH='';STIP=false;SUGG=null}
 function whenIdle(cb,n){if(!FLUSHING||(n||0)>30)cb();else setTimeout(function(){whenIdle(cb,(n||0)+1)},100)}
@@ -422,7 +423,7 @@ p.then(function(){progressWipe();ACC.rsBusy=false;ACC.rsConfirm=false;ACC.rsMsg=
 function vStats(){var t=STATS;if(!t)return '';var g=t.goals||{},bt=g.byType||{},LB={skill:'Develop a skill',concept:'Learn a concept',communication:'Improve communication',consistency:'Become consistent',fitness:'Get fitter',project:'Finish a project',other:'Other'},h='<div class="item"><h3>App stats</h3><p class="mute" style="margin-top:4px">Only you can see this. Totals only, never anyone\'s content. Days are UTC.</p>';
 h+='<p style="margin-top:10px"><strong>'+t.accounts+'</strong> accounts with data</p>';
 h+='<p><strong>'+(g.usersWithGoal||0)+'</strong> accounts have created a goal ('+(g.total||0)+' goals, '+(g.active||0)+' active)</p>';
-h+='<p><strong>'+((t.entitlements||{}).starterUsed||0)+'</strong> starter weeks used, <strong>'+((t.entitlements||{}).pro||0)+'</strong> paid accounts</p>';
+h+='<p><strong>'+((t.entitlements||{}).starterUsed||0)+'</strong> starter weeks used, <strong>'+((t.entitlements||{}).pro||0)+'</strong> paid accounts</p><p><strong>'+(t.checkins||0)+'</strong> check-ins saved</p>';
 h+='<details style="margin-top:10px"><summary style="cursor:pointer;color:var(--pri);font-weight:700">Goals by type</summary><ul style="padding-left:18px;margin-top:8px">';
 Object.keys(bt).forEach(function(k){h+='<li>'+(LB[k]||esc(k))+': '+bt[k]+'</li>'});
 h+='</ul></details>';
@@ -447,7 +448,7 @@ function gType(k){return GT.filter(function(t){return t.k===k})[0]}
 function gch(on,at,v,l){return '<button class="chip" '+at+'="'+esc(v)+'" aria-pressed="'+on+'">'+esc(l)+'</button>'}
 function ymd(t){var d=new Date(t);return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2)}
 function gq(g){var r={id:g.id,v:(S.rv=(S.rv||0)+1),data:{type:g.type,title:g.title,what:g.what,level:g.level,hours:g.hours,by:g.by||'',finished:g.finished||'',status:g.status,created:g.created,updated:Date.now()}};S.gq=(S.gq||[]).filter(function(x){return x.id!==r.id}).concat([r]).slice(-20)}
-function gsOpen(){GS={step:'type',type:'',what:'',level:'',hours:0,by:'',answer:'',q:'',rounds:0,proposal:null,err:'',fields:{},from:'time'};render();window.scrollTo(0,0)}
+function gsOpen(){GS={step:'type',type:'',what:'',level:'',hours:0,by:'',answer:'',q:'',use:[],rounds:0,proposal:null,err:'',fields:{},from:'time'};render();window.scrollTo(0,0)}
 function gsClose(){GS=null;render();window.scrollTo(0,0)}
 function gsRead(){if(!GS)return;var e;if((e=$('gsWhat')))GS.what=e.value.slice(0,300);if((e=$('gsBy')))GS.by=e.value;if((e=$('gsAns')))GS.answer=e.value.slice(0,300);
 if(GS.proposal&&$('gsTitle')){GS.proposal.title=$('gsTitle').value;GS.proposal.actions.forEach(function(a,i){var st=$('gsStep'+i),mn=$('gsMin'+i);if(st)a.step=st.value;if(mn)a.minutes=+mn.value})}}
@@ -461,7 +462,7 @@ if(Object.keys(f).length){GS.fields=f;GS.step=(f.what||f.level)?'what':'time';re
 GS.fields={};GS.err='';GS.from=GS.step==='question'?'question':'time';
 var ans=GS.step==='question'?('Q: '+GS.q+' A: '+(GS.answer||'')):'';
 GS.step='busy';render();
-ai('goal_setup',{type:GS.type,what:GS.what.trim(),level:GS.level,hours:GS.hours,by:GS.by||'',answer:ans}).then(function(j){if(!GS)return;
+ai('goal_setup',{type:GS.type,what:GS.what.trim(),level:GS.level,hours:GS.hours,by:GS.by||'',answer:ans,saves:GS.use.map(function(id){var x=saveById(id);return x?{title:x.title,summary:x.sum||''}:null}).filter(Boolean)}).then(function(j){if(!GS)return;
 if(j.status==='plan'){GS.proposal={title:j.title,finished:j.finished_looks_like,assumptions:j.assumptions||[],actions:(j.actions||[]).map(function(a){return {step:a.step,minutes:a.minutes,detail:a.detail||''}})};GS.step='review'}
 else if(j.status==='question'){GS.rounds++;if(GS.rounds>=3){GS.step='what';GS.err='We still need a little more detail. Add it to your description and try again.'}else{GS.q=j.question;GS.step='question'}}
 else{GS.q=j.question;GS.step='decline'}
@@ -483,7 +484,7 @@ function goalCreate(){var p=GS.proposal,t=gType(GS.type),now=Date.now();
 var goal={id:'g'+now.toString(36),type:GS.type,title:p.title.trim().slice(0,80),what:GS.what.trim().slice(0,300),level:GS.level,hours:GS.hours,by:GS.by||'',finished:String(p.finished||'').slice(0,200),status:'active',created:now};
 var parts=p.actions.map(function(a){return {act:a.step.trim().slice(0,140),min:Math.round(+a.minutes)||15,sum:String(a.detail||'').slice(0,200)}});
 var sv={id:nextId(),cat:t.cat,title:goal.title,src:'goal',theme:t.k,sum:goal.finished,ing:null,act:parts[0].act,parts:parts,slides:0,min:parts.reduce(function(x,y){return x+y.min},0),link:null,miss:null,goalId:goal.id};
-S.goal=goal;gq(goal);S.saves.push(sv);
+S.goal=goal;gq(goal);S.saves.push(sv);GS.use.forEach(function(id){attachSave(id,goal.id)});
 var n=addGoalWeek(sv);GS=null;
 FLASH=n?'Your first week is ready. '+n+' action'+(n===1?'':'s')+' added to this week.':'Your goal is saved. This week is already full, so add its actions from the Saves tab when there is room.';
 save();flushRecs();go('plan',true)}
@@ -494,7 +495,7 @@ if(g.step==='type'){h=back('close','Cancel')+'<h2 style="margin-top:14px">Start 
 else if(g.step==='what'){h=back('type','Back')+'<h2 style="margin-top:14px">'+esc(t.l)+'</h2>'+(g.err?'<p class="warn">'+esc(g.err)+'</p>':'')+'<h3 style="margin-top:14px">What exactly?</h3><p class="mute">In your own words. Be as specific as you can.</p><textarea id="gsWhat" class="ntin" maxlength="300" placeholder="'+esc(t.ph)+'" style="width:100%;margin-top:8px">'+esc(g.what)+'</textarea>'+fe('what')+'<h3 style="margin-top:14px">Where are you starting from?</h3><div class="chips">';
 GL.forEach(function(o){h+=gch(g.level===o[0],'data-gslevel',o[0],o[1])});h+='</div>'+fe('level')+'<button class="btn" data-gs="toTime" style="margin-top:14px">Next</button>'}
 else if(g.step==='time'){var now=Date.now();h=back('what','Back')+'<h2 style="margin-top:14px">How much time, and by when?</h2>'+(g.err?'<p class="warn">'+esc(g.err)+'</p>':'')+'<h3 style="margin-top:14px">Time each week</h3><div class="chips">';
-GHR.forEach(function(x){h+=gch(g.hours===x,'data-gshours',x,x===1?'1 hour':x+' hours')});h+='</div>'+fe('hours')+'<h3 style="margin-top:14px">Target date (optional)</h3><input type="date" id="gsBy" class="ntin" min="'+ymd(now)+'" max="'+ymd(now+365*864e5)+'" value="'+esc(g.by)+'" aria-label="Target date"><p class="mute" style="margin-top:14px">Your first week is planned within that time. You can change anything before it is added.</p><button class="btn" data-gs="make" style="margin-top:6px">Make my first week</button>'}
+GHR.forEach(function(x){h+=gch(g.hours===x,'data-gshours',x,x===1?'1 hour':x+' hours')});h+='</div>'+fe('hours')+'<h3 style="margin-top:14px">Target date (optional)</h3><input type="date" id="gsBy" class="ntin" min="'+ymd(now)+'" max="'+ymd(now+365*864e5)+'" value="'+esc(g.by)+'" aria-label="Target date">'+vGsUse(g)+'<p class="mute" style="margin-top:14px">Your first week is planned within that time. You can change anything before it is added.</p><button class="btn" data-gs="make" style="margin-top:6px">Make my first week</button>'}
 else if(g.step==='busy'){h='<h2>Making your first week...</h2><p class="mute">This takes a few seconds.</p>'}
 else if(g.step==='question'){h=back('time','Back')+'<h2 style="margin-top:14px">One quick question</h2>'+(g.err?'<p class="warn">'+esc(g.err)+'</p>':'')+'<p style="margin-top:10px">'+esc(g.q)+'</p><textarea id="gsAns" class="ntin" maxlength="300" style="width:100%;margin-top:8px" aria-label="Your answer">'+esc(g.answer)+'</textarea><button class="btn" data-gs="answer" style="margin-top:12px">Continue</button>'}
 else if(g.step==='decline'){h='<h2>We cannot plan this one</h2><p style="margin-top:10px">'+esc(g.q)+'</p><div class="row" style="margin-top:14px;gap:8px">'+back('what','Change my goal')+back('close','Close')+'</div>'}
@@ -512,11 +513,12 @@ return '<div class="item"><div class="row sp"><span class="badge">'+esc(t?t.l:'G
 function vGoalDoor(){if(S.goal&&S.goal.status==='active')return vGoalCard();if(!S.saves.length)return '';return '<div class="row sp" style="margin:10px 0"><span class="mute">No post handy?</span><button class="btn ghost sm" data-gsdoor="1">Start from a goal</button></div>'}
 document.addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;
 if(b.dataset.gsdoor){if(b.dataset.gsdoor==='skip'&&!S.profile){S.profile={focus:[],hours:3,style:'daily'};save()}gsOpen()}
-else if(b.dataset.goalstop){if(b.dataset.goalstop==='ask'){GSTOP=true;render()}else if(b.dataset.goalstop==='no'){GSTOP=false;render()}else if(S.goal){S.goal.status='ended';S.goal.updated=Date.now();gq(S.goal);S.goal=null;GSTOP=false;FLASH='Goal stopped. You can start a new one any time.';save();flushRecs();render()}}
+else if(b.dataset.goalstop){if(b.dataset.goalstop==='ask'){GSTOP=true;render()}else if(b.dataset.goalstop==='no'){GSTOP=false;render()}else if(S.goal){S.goal.status='ended';S.goal.updated=Date.now();gq(S.goal);S.goalHist=(S.goalHist||[]).concat([{id:S.goal.id,title:S.goal.title,type:S.goal.type}]).slice(-5);if(S.ci&&S.ci.goalId===S.goal.id){S.ci=null;CI=null}S.goal=null;GSTOP=false;FLASH='Goal stopped. You can start a new one any time.';save();flushRecs();render()}}
 else if(!GS){return}
 else if(b.dataset.gstype){gsRead();GS.type=b.dataset.gstype;GS.step='what';GS.fields={};GS.err='';render();window.scrollTo(0,0)}
 else if(b.dataset.gslevel){gsRead();GS.level=b.dataset.gslevel;render()}
 else if(b.dataset.gshours){gsRead();GS.hours=+b.dataset.gshours;render()}
+else if(b.dataset.gsuse){gsRead();var uid=+b.dataset.gsuse,ui=GS.use.indexOf(uid);if(ui>=0)GS.use.splice(ui,1);else if(GS.use.length<5)GS.use.push(uid);render()}
 else if(b.dataset.gsrm!==undefined){gsRead();GS.proposal.actions.splice(+b.dataset.gsrm,1);render()}
 else if(b.dataset.gs){gsRead();var a=b.dataset.gs;
 if(a==='close')gsClose();
@@ -524,6 +526,44 @@ else if(a==='type'||a==='what'||a==='time'||a==='question'){GS.step=a;GS.err='';
 else if(a==='toTime')gsNext();
 else if(a==='make'||a==='answer')gsMake();
 else if(a==='approve')gsApprove()}});
+var CIO=[['time','Not enough time'],['unclear','Steps were unclear'],['energy','Low energy'],['stress','Stress or a busy week'],['access','Missing something I needed'],['toobig','The plan was too big'],['other','Something else']];
+function goalBadge(sv){return (S.goal&&S.goal.status==='active'&&sv.goalId===S.goal.id&&sv.src!=='goal')?'<p class="mute" style="margin-top:6px">Part of your goal: '+esc(S.goal.title)+'</p>':''}
+function attachBtn(sv){if(!S.goal||S.goal.status!=='active'||sv.src==='goal')return '';return sv.goalId===S.goal.id?'<button class="btn ghost sm" data-detach="'+sv.id+'">Detach from goal</button>':'<button class="btn ghost sm" data-attach="'+sv.id+'">Attach to goal</button>'}
+function attachSave(id,gid){var sv=saveById(id);if(!sv)return;sv.goalId=gid;(S.plan||[]).forEach(function(it){if(!it.goal&&sidOf(it)===id){it.goalId=gid;if(it.rc)recQueue(it,false,true)}})}
+function detachSave(id){var sv=saveById(id);if(!sv)return;delete sv.goalId;(S.plan||[]).forEach(function(it){if(!it.goal&&sidOf(it)===id){delete it.goalId;if(it.rc)recQueue(it,false,true)}})}
+function vGsUse(g){var cs=S.saves.filter(function(x){return x.src!=='goal'});if(!cs.length)return '';
+var h='<h3 style="margin-top:14px">Use some of your saves (optional)</h3><p class="mute">Pick up to 5. Their ideas help plan your first week, and they are attached to your goal.</p><div class="chips">';
+cs.slice().sort(function(a,b){return b.id-a.id}).slice(0,12).forEach(function(x){h+=gch(g.use.indexOf(x.id)>=0,'data-gsuse',x.id,x.title)});return h+'</div>'}
+function goalList(recs){var seen={},o=[];function add(id,l){if(!id||seen[id])return;seen[id]=1;o.push({id:id,label:l})}
+if(S.goal)add(S.goal.id,S.goal.title);(S.goalHist||[]).forEach(function(x){add(x.id,x.title)});recs.forEach(function(r){add(r.goalId,'Earlier goal')});return o}
+function goalChips(gl){if(!gl.length)return '';var h='<div class="chips" role="group" aria-label="Show records for">'+gch(GF==='all','data-gf','all','All actions');gl.forEach(function(x){h+=gch(GF===x.id,'data-gf',x.id,x.label)});return h+'</div>'}
+function ciArm(){var g=S.goal;if(!g||g.status!=='active'||!S.plan)return;if(!S.plan.some(function(x){return x.goalId===g.id}))return;S.ci={goalId:g.id,wk:wkKey(S.wk||Date.now()),end:Date.now()};CI=null;CIDONE=false}
+function ciRead(){var e=$('ciNote');if(e&&CI)CI.note=e.value.slice(0,140)}
+function vCi(){if(CIDONE&&!S.ci)return '<div class="item"><strong>Thanks for checking in.</strong></div>';if(!S.ci)return '';
+if(!S.goal||S.goal.id!==S.ci.goalId){S.ci=null;return ''}
+if(!CI)CI={diff:'',conf:0,obs:[],note:'',err:''};
+var h='<div class="item"><h3>How did last week go?</h3><p class="mute">About your goal: '+esc(S.goal.title)+'. A few taps help plan what comes next. You can skip this.</p><p style="margin-top:12px"><strong>The plan felt</strong></p><div class="chips">';
+[['easy','Too easy'],['right','About right'],['hard','Too hard']].forEach(function(o){h+=gch(CI.diff===o[0],'data-cidiff',o[0],o[1])});
+h+='</div><p><strong>How confident are you about this goal?</strong> <span class="mute">1 is not at all, 5 is very</span></p><div class="chips">';
+[1,2,3,4,5].forEach(function(n){h+=gch(CI.conf===n,'data-ciconf',n,String(n))});
+h+='</div><p><strong>Anything get in the way?</strong> <span class="mute">Optional, up to 3</span></p><div class="chips">';
+CIO.forEach(function(o){h+=gch(CI.obs.indexOf(o[0])>=0,'data-ciobs',o[0],o[1])});
+h+='</div><input id="ciNote" class="ntin" maxlength="140" placeholder="Optional note" aria-label="Optional note" value="'+esc(CI.note)+'" style="width:100%;margin-top:6px">'+(CI.err?'<p class="warn">'+esc(CI.err)+'</p>':'')+'<div class="row" style="gap:8px;margin-top:12px"><button class="btn sm" data-ciact="save">Save check-in</button><button class="btn ghost sm" data-ciact="skip">Skip</button></div></div>';return h}
+function ciSave(){var c=S.ci;if(!c||!CI)return;if(!CI.diff||!CI.conf){CI.err='Pick how the plan felt and how confident you are.';render();return}
+var r={id:c.goalId+'_'+c.wk,v:(S.rv=(S.rv||0)+1),data:{goalId:c.goalId,wk:c.wk,diff:CI.diff,conf:CI.conf,obs:CI.obs.slice(0,3),note:(CI.note||'').trim().slice(0,140),created:Date.now()}};
+S.cq=(S.cq||[]).filter(function(x){return x.id!==r.id}).concat([r]).slice(-20);S.ci=null;CI=null;CIDONE=true;save();flushRecs();render()}
+function render(){render0();if((S.ci||CIDONE)&&!GS&&S.profile&&(U||!CLOUD_ON)&&['plan','review','progress'].indexOf(S.tab)>=0)$('main').insertAdjacentHTML('afterbegin',vCi())}
+document.addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;
+if(b.dataset.attach){attachSave(+b.dataset.attach,S.goal&&S.goal.id);save();flushRecs();render()}
+else if(b.dataset.detach){detachSave(+b.dataset.detach);save();flushRecs();render()}
+else if(b.dataset.gf){GF=b.dataset.gf;render()}
+else if(b.dataset.cidiff||b.dataset.ciconf||b.dataset.ciobs||b.dataset.ciact){ciRead();if(!CI)CI={diff:'',conf:0,obs:[],note:'',err:''};CI.err='';
+if(b.dataset.cidiff)CI.diff=b.dataset.cidiff;
+else if(b.dataset.ciconf)CI.conf=+b.dataset.ciconf;
+else if(b.dataset.ciobs){var oi=CI.obs.indexOf(b.dataset.ciobs);if(oi>=0)CI.obs.splice(oi,1);else if(CI.obs.length<3)CI.obs.push(b.dataset.ciobs)}
+else if(b.dataset.ciact==='skip'){S.ci=null;CI=null;save();render();return}
+else if(b.dataset.ciact==='save'){ciSave();return}
+render()}});
 function infoBtn(){return '<button class="info" id="streakInfo" aria-expanded="'+STIP+'" aria-controls="streakTip" aria-label="How the weekly streak works">i</button>'}
 function tipHTML(){return '<p class="tip" id="streakTip">A week counts toward your streak when you finish at least half of that week\'s actions or at least 3 of them, whichever is lower. Weeks run Monday to Sunday. One missed week is forgiven per streak.</p>'}
 function vDots(){var now=new Date();now.setHours(0,0,0,0);var mon=new Date(now);mon.setDate(mon.getDate()-((now.getDay()+6)%7));
@@ -590,12 +630,12 @@ else if(b.dataset.rep){var g=S.plan.filter(function(x){return x.id===b.dataset.r
 });
 document.addEventListener('change',function(e){if(e.target.dataset&&e.target.dataset.g!==undefined){S.groc[e.target.dataset.g]=e.target.checked;save()}else if(e.target.id==='ed-cat'){readEdit();render()}});
 function sheet(o){$('sheet').classList.toggle('open',o)}
-$('addBtn').onclick=function(){$('sgate').hidden=true;$('serr').textContent='';$('shint').textContent='';sheet(true);$('txt').focus()};$('cancel').onclick=function(){sheet(false)};
+$('addBtn').onclick=function(){var ag=S.goal&&S.goal.status==='active';$('forGoalRow').hidden=!ag;if(ag)$('forGoalTxt').textContent='Add to my goal: '+S.goal.title;$('sgate').hidden=true;$('serr').textContent='';$('shint').textContent='';sheet(true);$('txt').focus()};$('cancel').onclick=function(){sheet(false)};
 function shrink(f){return new Promise(function(res){var r=new FileReader();r.onload=function(){var im=new Image();im.onload=function(){var k=Math.min(1,1100/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=im.width*k;c.height=im.height*k;c.getContext('2d').drawImage(im,0,0,c.width,c.height);res(c.toDataURL('image/jpeg',.7).split(',')[1])};im.onerror=function(){res(null)};im.src=r.result};r.onerror=function(){res(null)};r.readAsDataURL(f)})}
 function ai(mode,body){body.mode=mode;var tk=(U&&window.cloud)?window.cloud.token():Promise.resolve(null);return tk.then(function(t){var h={'Content-Type':'application/json'};if(t)h.Authorization='Bearer '+t;return fetch('/api/ai',{method:'POST',headers:h,body:JSON.stringify(body)})}).then(function(r){if(!r.ok)return r.json().catch(function(){return {}}).then(function(j){var e=new Error('ai '+r.status);e.status=r.status;e.code=j&&j.code;throw e});return r.json()})}
 function aiWhy(e){if(e&&e.status===429)return e.code==='daily_limit'?'You have reached today\'s reading limit. It resets tomorrow.':'You have reached the hourly reading limit. Try again in a little while.';if(e&&e.status===401)return 'Please sign in again.';if(e&&e.code==='not_configured')return 'The server is not set up correctly.';return 'Reading failed. Check your connection and try again.'}
 function nextId(){return S.saves.length?Math.max.apply(null,S.saves.map(function(s){return s.id}))+1:1}
-function addSave(o){S.saves.push(o);S.tab='saves';FLASH='';JUST=weekOpen()?o.id:null;save();$('saveIt').disabled=false;$('saveIt').textContent='Save it';$('txt').value='';$('lnk').value='';$('shots').value='';sheet(false);render()}
+function addSave(o){var fg=$('forGoal');if(fg&&fg.checked&&S.goal&&S.goal.status==='active')o.goalId=S.goal.id;if(fg)fg.checked=false;S.saves.push(o);S.tab='saves';FLASH='';JUST=weekOpen()?o.id:null;save();$('saveIt').disabled=false;$('saveIt').textContent='Save it';$('txt').value='';$('lnk').value='';$('shots').value='';sheet(false);render()}
 function heur(t,n,l){var low=t.toLowerCase(),cat='Mindset';if(/recipe|cup|tbsp|bake|cook|ingredient/.test(low))cat='Cook';else if(/workout|reps|sets|squat|run/.test(low))cat='Train';else if(/buy|\$|deal|review/.test(low))cat='Buy';
 return {id:nextId(),cat:cat,title:t?t.split(/\s+/).slice(0,8).join(' '):'Screenshot save ('+n+' image'+(n>1?'s':'')+')',src:'you',theme:cat==='Mindset'?'mindset':cat.toLowerCase(),sum:t?t.slice(0,110):'Screenshots added.',act:'Review this save and choose one concrete step.',min:15,link:/^https?:\/\//.test(l)?l:null,miss:n?'Text could not be read automatically. Remove this save and add it again to retry.':null}}
 var SHARE_DONE=false;
@@ -734,6 +774,7 @@ resetRecs:()=>acct("reset"),
 stats:async()=>{const t=await auth.currentUser.getIdToken();const r=await fetch("/api/stats",{headers:{authorization:"Bearer "+t}});if(r.status===403||r.status===401)return false;if(!r.ok)throw new Error("stats");return r.json()},
 putRec:(r)=>setDoc(doc(db,"growth",auth.currentUser.uid,"records",r.id),r.data),
 putGoal:(r)=>setDoc(doc(db,"growth",auth.currentUser.uid,"goals",r.id),r.data),
+putCheckin:(r)=>setDoc(doc(db,"growth",auth.currentUser.uid,"checkins",r.id),r.data),
 listRecs:async()=>{const s=await getDocs(query(collection(db,"growth",auth.currentUser.uid,"records"),orderBy("sched","desc"),limit(800)));return s.docs.map(d=>Object.assign({id:d.id},d.data()))}
 };
 onAuthStateChanged(auth,async(u)=>{let data=null;
