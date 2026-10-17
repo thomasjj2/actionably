@@ -51,11 +51,12 @@ export default async (req) => {
   try {
     const now = Date.now();
     const since = dayOf(now - 13 * 864e5);
-    const [apps, goalSnap, entSnap, useSnap] = await Promise.all([
+    const [apps, goalSnap, entSnap, useSnap, ciSnap] = await Promise.all([
       d.collection("actionablyApp").count().get(),
       d.collectionGroup("goals").select("type", "created", "status").get(),
       d.collection("entitlements").get(),
       d.collection("aiUsage").where("day", ">=", since).get(),
+      d.collectionGroup("checkins").count().get(),
     ]);
 
     // goals: counts by type and by day, never their text
@@ -107,6 +108,7 @@ export default async (req) => {
       timezone: "UTC",
       accounts: apps.data().count,
       goals: { total: goalSnap.size, active, usersWithGoal: withGoal.size, byType, perDay },
+      checkins: ciSnap.data().count,
       entitlements: { pro, starterUsed },
       ai: { days: aiDays, modeTotals },
     });
